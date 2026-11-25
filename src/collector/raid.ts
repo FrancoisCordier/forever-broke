@@ -4,7 +4,7 @@
  * An item is raid-relevant if it is a raid product, or a reagent in a recipe that makes one.
  */
 import { readFile } from "node:fs/promises";
-import type { Use } from "../shared/signals.ts";
+import type { CraftRecipe, Use } from "../shared/signals.ts";
 import type { ItemMeta } from "../shared/types.ts";
 
 interface Recipe {
@@ -12,6 +12,7 @@ interface Recipe {
   profession: string;
   category: string;
   item: { id: number; name: string } | null;
+  makes: number;
   reagents: { id: number; name: string; qty: number }[];
 }
 
@@ -20,6 +21,8 @@ export interface RaidInfo {
   product: boolean;
   /** Recipes using it, raid products first. */
   uses: Use[];
+  /** How it's crafted (first matching recipe), if it is. */
+  recipe: CraftRecipe | null;
 }
 
 export async function loadRecipes(path = "recipes.json"): Promise<Recipe[]> {
@@ -37,7 +40,7 @@ export function raidInfo(
 ): Map<number, RaidInfo> {
   const products = new Set([...watch].filter((id) => items[id]?.cls === "Consumable"));
   const out = new Map<number, RaidInfo>();
-  for (const id of watch) out.set(id, { product: products.has(id), uses: [] });
+  for (const id of watch) out.set(id, { product: products.has(id), uses: [], recipe: null });
   for (const r of recipes) {
     // Season of Discovery recipes exist in the data but nothing shows they're live in Forever,
     // and some items are literally named "… NYI" (not yet implemented).
@@ -45,6 +48,10 @@ export function raidInfo(
     const name = r.item?.name ?? r.name;
     if (/season of discovery/i.test(r.category) || /\bNYI\b/.test(name)) continue;
     const raid = r.item !== null && products.has(r.item.id);
+    const crafted = r.item ? out.get(r.item.id) : undefined;
+    if (crafted && !crafted.recipe) {
+      crafted.recipe = { profession: r.profession, makes: r.makes, reagents: r.reagents };
+    }
     for (const g of r.reagents) {
       const info = out.get(g.id);
       if (!info || info.uses.some((u) => u.name === name)) continue;

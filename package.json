@@ -7,7 +7,10 @@
   },
   "scripts": {
     "explore": "node --env-file-if-exists=.env scripts/explore-api.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p site",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "resolve-items": "node --env-file-if-exists=.env scripts/resolve-items.ts",
     "collect": "node --env-file-if-exists=.env src/collector/main.ts",
     "test": "vitest run",
@@ -18,10 +21,18 @@
   "devDependencies": {
     "@biomejs/biome": "2.6.9",
     "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "typescript": "^7.0.2",
+    "vite": "^8.3.8",
     "vitest": "^5.1.1"
   },
   "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^8.5.2",
+    "recharts": "^3.11.1",
     "yaml": "^2.9.1"
   },
   "packageManager": "pnpm@11.13.0"

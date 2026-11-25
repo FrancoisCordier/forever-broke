@@ -56,6 +56,15 @@ export interface BuyListItem extends ItemSignal {
   vendorPrice: number | null;
   /** Current listings by price, cheapest first (truncated). */
   ladder: Ladder;
+  /** How this item is crafted, if it is (from recipes.json). */
+  recipe: CraftRecipe | null;
+}
+
+export interface CraftRecipe {
+  profession: string;
+  /** Units produced per craft. */
+  makes: number;
+  reagents: { id: number; name: string; qty: number }[];
 }
 
 /** {house}/buylist.json, written by the collector for the focus house. */

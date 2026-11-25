@@ -274,6 +274,7 @@ async function writeBuyList(
       uses: info?.uses ?? [],
       vendorPrice: cfg.vendorPrices[id] ?? null,
       ladder: ladder.slice(0, LADDER_ROWS),
+      recipe: info?.recipe ?? null,
     });
   }
 
