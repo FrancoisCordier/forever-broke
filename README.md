@@ -11,7 +11,7 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
 2. **Local**: `pnpm install`, then `cp .env.example .env` and fill in the client ID and secret.
 3. **GitHub secrets**: in the repo's *Settings → Secrets and variables → Actions*, add
    `BNET_CLIENT_ID` and `BNET_CLIENT_SECRET`.
-4. The `collect` workflow runs twice an hour (`:17`, `:47`) and force-pushes the aggregated data to the
+4. The `collect` workflow runs twice an hour (`:29`, `:54`, just after the API refreshes at ~:22) and force-pushes the aggregated data to the
    `data` branch. Run it by hand from the Actions tab (*collect → Run workflow*).
 5. *(Phase 2)* GitHub Pages for the website.
 

@@ -2,10 +2,10 @@ name: collect
 
 on:
   schedule:
-    # Odd minutes: GitHub delays top-of-hour crons. Two slots/hour so a dropped run costs ≤ 30 min;
-    # unchanged snapshots are skipped via If-Modified-Since (304), so the extra run is nearly free.
-    - cron: "17 * * * *"
-    - cron: "47 * * * *"
+    # API snapshots refresh at ~:22 (A12). :29 catches it (GitHub often adds 5–15 min of delay); :54 is a safety net.
+    # Unchanged snapshots are skipped via If-Modified-Since (304), so the extra run is nearly free.
+    - cron: "29 * * * *"
+    - cron: "54 * * * *"
   workflow_dispatch:
 
 permissions:

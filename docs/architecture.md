@@ -23,7 +23,7 @@ Optional: tools/update_addon.ts ── latest.json ──► Data.lua ──► 
 | Component | Tech | Notes |
 |---|---|---|
 | Collector | TypeScript on Node 22+, built-in `fetch`, `yaml`, Vitest (ADR-0006) | Stateless: reads the previous JSON from the `data` branch, writes the new JSON. |
-| Scheduler | GitHub Actions `schedule` | Cron is best-effort: runs are often late and sometimes dropped. Runs at `:17` and `:47`: two slots so a dropped run costs ≤ 30 min, and the second is nearly free when the snapshot is unchanged (304). The collector never assumes a run happened on the hour (see "Time" below). |
+| Scheduler | GitHub Actions `schedule` | Cron is best-effort: runs are often late and sometimes dropped. Runs at `:29` and `:54`. API snapshots refresh at ~:22 past the hour, so `:29` catches the new one and `:54` is a safety net that costs almost nothing (304) when the snapshot is unchanged. The collector never assumes a run happened on the hour (see "Time" below). |
 | Site | Vite + TypeScript + Preact, uPlot for charts *(proposed)* | No backend. Dark theme, mobile-friendly. |
 | Addon | Lua, Classic-style UI API *(unverified for Forever)* | Phase 4. |
 

@@ -18,7 +18,7 @@ with the date and how we checked. Code must not depend on an `UNVERIFIED` fact w
 | A9 | Commodities are per house (different contents per house), not region-wide like retail | VERIFIED | 2026-11-25 |
 | A10 | Commodity listing: `{id, item:{id}, quantity, unit_price, time_left}` | VERIFIED | 2026-11-25 |
 | A11 | Prices in copper | VERIFIED | Black Lotus ≈ 90,000 = 9g, plausible |
-| A12 | Largest response ≈ 11 MB (Horde 114, ~128k listings), fetched in ~300 ms. Snapshots updated ~hourly (Last-Modified times cluster per run) | VERIFIED (size), UNVERIFIED (cadence) | 2026-11-25 |
+| A12 | Largest response ≈ 11 MB (Horde 114, ~128k listings), fetched in ~300 ms. Snapshots refresh hourly at ~:22 UTC (16:22, 17:22 on 2026-11-25) | VERIFIED (size), PLAUSIBLE (cadence, 2 observations) | 2026-11-25 |
 | A13 | `If-Modified-Since` → `304 Not Modified` | VERIFIED | house 110, 2026-11-25 |
 | A14 | Rate limits (retail: 36,000/h, 100/s) apply to Forever namespaces | UNVERIFIED | ~30 calls per run, no throttling seen |
 | A15 | `GET /data/wow/item/{id}` in `static-forever-eu` returns item with name; Classic IDs carry over | VERIFIED | 8/8 probe IDs matched, 2026-11-25 (media/icons not yet tested) |
