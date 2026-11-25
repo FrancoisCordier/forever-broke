@@ -21,7 +21,8 @@ export async function loadConfig(path = "config.yaml"): Promise<Config> {
   if (!cfg?.region || !Array.isArray(cfg.houses) || cfg.houses.length === 0) {
     throw new Error(`${path}: region and at least one house are required`);
   }
-  for (const h of cfg.houses) if (!Number.isInteger(h.id)) throw new Error(`${path}: bad house id ${JSON.stringify(h)}`);
+  for (const h of cfg.houses)
+    if (!Number.isInteger(h.id)) throw new Error(`${path}: bad house id ${JSON.stringify(h)}`);
   cfg.watchlist ??= {};
   cfg.thresholds ??= {};
   return cfg;

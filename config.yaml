@@ -25,10 +25,10 @@ watchlist:
     13511: Flask of Distilled Wisdom
     13512: Flask of Supreme Power
     13513: Flask of Chromatic Resistance
-    274273: Flask of Natural Accuracy     # new in Forever
-    274274: Flask of Natural Aggression   # new in Forever
-    274275: Flask of Natural Precision    # new in Forever
-    274276: Flask of Natural Swiftness    # new in Forever
+    274273: Flask of Natural Accuracy # new in Forever
+    274274: Flask of Natural Aggression # new in Forever
+    274275: Flask of Natural Precision # new in Forever
+    274276: Flask of Natural Swiftness # new in Forever
   potions:
     13457: Greater Fire Protection Potion
     13456: Greater Frost Protection Potion
@@ -59,25 +59,25 @@ watchlist:
     # Level-55 Forever elixirs are in forever_raid. Lower ones are covered by daily data.
   forever_raid:
     # New in Forever. Flasks only work in Mount Hyjal / Hyjal Summit / Barrow Deeps (verified item text 2026-11-25).
-    248822: Death Lotus          # 1 per Forever flask; 9 recipes total
-    248821: Demonsage            # 12–18 per Accuracy/Aggression flask
-    248823: Marefoil             # 12–18 per Precision/Swiftness flask
-    18256: Imbued Vial           # likely vendor-capped at 60s
-    250328: Elixir of Cunning    # +25 Agi/Int
+    248822: Death Lotus # 1 per Forever flask; 9 recipes total
+    248821: Demonsage # 12–18 per Accuracy/Aggression flask
+    248823: Marefoil # 12–18 per Precision/Swiftness flask
+    18256: Imbued Vial # likely vendor-capped at 60s
+    250328: Elixir of Cunning # +25 Agi/Int
     250329: Elixir of the Phalanx # +400 HP, +500 armor
-    250337: Elixir of the Owl    # +25 Int, +2% crit
-    250338: Elixir of Sages      # +25 Spi, +2% crit
+    250337: Elixir of the Owl # +25 Int, +2% crit
+    250338: Elixir of Sages # +25 Spi, +2% crit
     250351: Elixir of the Grizzly # +25 Str, +2% crit
-    250350: Elixir of Ferocity   # +18 Str/Agi
+    250350: Elixir of Ferocity # +18 Str/Agi
     250341: Greater Mageblood Elixir
     250333: Greater Cleric's Elixir
     250343: Elixir of Nature Power
     250335: Elixir of Greater Fortitude
     250937: Major Spellblasting Potion # +47 spell dmg 30s
-    250943: Major Frenzy Potion        # +80 AP 30s
-    250949: Major Mender's Potion      # +88 healing 30s
+    250943: Major Frenzy Potion # +80 AP 30s
+    250949: Major Mender's Potion # +88 healing 30s
     250954: Potion of Elemental Purging
-    267341: Sweetpaw Jam               # Hyjal food
+    267341: Sweetpaw Jam # Hyjal food
     260817: EZ-Thro Dark Bomb
     260816: EZ-Thro Thorium Grenade
     252488: Forceful Rugged Armor Kit
@@ -127,5 +127,5 @@ thresholds:
   squeezeQtyDropPct: 30
   spikePct: 40
   crossFactionGapPct: 25
-  minUnitsListed: 20      # ignore items with fewer units listed
+  minUnitsListed: 20 # ignore items with fewer units listed
   minHistoryFraction: 0.7 # a 7-day window needs ≥ 70% of its hourly points

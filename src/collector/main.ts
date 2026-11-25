@@ -15,7 +15,7 @@ import { aggregate } from "../shared/aggregate.ts";
 import { appendHourly, emptyDaily, emptyHourly, foldDaily, utcDate } from "../shared/series.ts";
 import type { DailySeries, HourlySeries, ItemMeta, Latest, Meta, Stats } from "../shared/types.ts";
 import { Api } from "./api.ts";
-import { loadConfig, watchlistIds, type HouseConfig } from "./config.ts";
+import { type HouseConfig, loadConfig, watchlistIds } from "./config.ts";
 import { pool, readJson, writeJson } from "./store.ts";
 
 const DATA_DIR = process.env.DATA_DIR ?? "out/data";
@@ -55,7 +55,11 @@ async function main() {
   meta.lastRun = now();
   meta.version = META_VERSION;
   await writeJson(metaPath, meta);
-  await writeJson(join(DATA_DIR, "config.json"), { houses: cfg.houses, watchlist: cfg.watchlist, thresholds: cfg.thresholds });
+  await writeJson(join(DATA_DIR, "config.json"), {
+    houses: cfg.houses,
+    watchlist: cfg.watchlist,
+    thresholds: cfg.thresholds,
+  });
 
   if (ok === 0) {
     log("every house failed");
@@ -63,7 +67,13 @@ async function main() {
   }
 }
 
-async function collectHouse(api: Api, house: HouseConfig, meta: Meta, watch: Set<number>, seen: Set<number>): Promise<string> {
+async function collectHouse(
+  api: Api,
+  house: HouseConfig,
+  meta: Meta,
+  watch: Set<number>,
+  seen: Set<number>,
+): Promise<string> {
   const prev = meta.houses[house.id];
   const res = await api.commodities(house.id, prev?.lastModified);
   if (res.status === "unchanged") {
@@ -77,7 +87,12 @@ async function collectHouse(api: Api, house: HouseConfig, meta: Meta, watch: Set
 
   const listings = res.listings ?? [];
   if (listings.length === 0 && (prev?.listings ?? 0) >= EMPTY_GUARD_MIN_LISTINGS) {
-    meta.houses[house.id] = { ...prev, status: "rejected", error: `empty response, previously ${prev?.listings} listings`, checkedAt: now() };
+    meta.houses[house.id] = {
+      ...prev,
+      status: "rejected",
+      error: `empty response, previously ${prev?.listings} listings`,
+      checkedAt: now(),
+    };
     return "REJECTED empty response (kept previous data)";
   }
 
@@ -113,7 +128,8 @@ async function collectHouse(api: Api, house: HouseConfig, meta: Meta, watch: Set
   });
 
   const day = utcDate(t);
-  const perDay = (meta.snapshotsPerDay[house.id] ??= {});
+  meta.snapshotsPerDay[house.id] ??= {};
+  const perDay = meta.snapshotsPerDay[house.id];
   perDay[day] = (perDay[day] ?? 0) + 1;
 
   meta.houses[house.id] = {
@@ -137,11 +153,20 @@ async function updateItemMeta(api: Api, seen: Set<number>) {
   await pool(missing, 5, async (id) => {
     try {
       const d = (await api.item(id)) as {
-        name?: string; level?: number; quality?: { type?: string };
-        item_class?: { name?: string }; item_subclass?: { name?: string };
+        name?: string;
+        level?: number;
+        quality?: { type?: string };
+        item_class?: { name?: string };
+        item_subclass?: { name?: string };
       } | null;
       items[id] = d
-        ? { name: d.name ?? null, quality: d.quality?.type, cls: d.item_class?.name, sub: d.item_subclass?.name, level: d.level }
+        ? {
+            name: d.name ?? null,
+            quality: d.quality?.type,
+            cls: d.item_class?.name,
+            sub: d.item_subclass?.name,
+            level: d.level,
+          }
         : { name: null };
     } catch {
       failed++; // retried next run

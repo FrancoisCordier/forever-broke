@@ -35,8 +35,13 @@ export function appendHourly(series: HourlySeries, t: number, s: Stats | undefin
 export function foldDaily(series: DailySeries, t: number, s: Stats): DailySeries {
   const day = utcDate(t);
   const out: DailySeries = {
-    d: [...series.d], min: [...series.min], p10: [...series.p10], median: [...series.median],
-    qty: [...series.qty], listings: [...series.listings], n: [...series.n],
+    d: [...series.d],
+    min: [...series.min],
+    p10: [...series.p10],
+    median: [...series.median],
+    qty: [...series.qty],
+    listings: [...series.listings],
+    n: [...series.n],
   };
   const i = out.d.length - 1;
   if (i >= 0 && out.d[i] === day) {
@@ -49,8 +54,13 @@ export function foldDaily(series: DailySeries, t: number, s: Stats): DailySeries
     out.listings[i] = mean(out.listings[i], s.listings);
     out.n[i] = n + 1;
   } else if (i < 0 || out.d[i] < day) {
-    out.d.push(day); out.min.push(s.min); out.p10.push(s.p10); out.median.push(s.median);
-    out.qty.push(s.qty); out.listings.push(s.listings); out.n.push(1);
+    out.d.push(day);
+    out.min.push(s.min);
+    out.p10.push(s.p10);
+    out.median.push(s.median);
+    out.qty.push(s.qty);
+    out.listings.push(s.listings);
+    out.n.push(1);
   }
   // A snapshot older than the last stored day is ignored (should not happen).
   return out;

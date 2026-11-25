@@ -3,6 +3,7 @@
 Each one is resolved into an ADR, or turned into a fact in `api-notes.md`, then removed from here.
 
 ## Owner context (answered)
+
 - Plays on the **PvP ruleset, Alliance** (2026-11-25). Phase 0 must find which house IDs that maps to.
   Note the community report (A7) says the ruleset in the URL path is ignored and all rulesets list
   the same houses, so "PvP" may not map directly to a house set. To be checked against in-game prices.
@@ -16,9 +17,11 @@ Each one is resolved into an ADR, or turned into a fact in `api-notes.md`, then 
 - **No addon for now**, maybe later (2026-11-25).
 
 ## Need your answer
+
 1. **UI proposal** in [ui.md](ui.md) and price definitions in [ADR-0007](decisions/0007-price-definitions.md): OK?
 
 ## Technical, to resolve during Phase 0/1
+
 - Hourly history for every commodity, or only for the watchlist? (ADR-0004 proposes: aggregates for all, hourly files for watchlist + anything that moves.)
 - Min-volume guard defaults for signals.
 - How the site reads data: raw.githubusercontent.com from the `data` branch, or copy data into the Pages deploy on each run? (CORS and caching are different for each.)

@@ -40,14 +40,14 @@ async function getToken(): Promise<string> {
   const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: {
-      Authorization: "Basic " + Buffer.from(`${id}:${secret}`).toString("base64"),
+      Authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: "grant_type=client_credentials",
   });
   if (!res.ok) throw new Error(`Token request failed: ${res.status} ${await res.text()}`);
   const body = (await res.json()) as { access_token?: string };
-  if (!body.access_token) throw new Error("Token response has no access_token: " + JSON.stringify(body));
+  if (!body.access_token) throw new Error(`Token response has no access_token: ${JSON.stringify(body)}`);
   return body.access_token;
 }
 
@@ -94,10 +94,12 @@ function findHouses(node: Json, inHouseKey = false, acc = new Map<number, string
 
 /** Find {id} objects in the ruleset index (any array of objects with numeric ids). */
 function findIds(node: Json, acc: { id: number; name: string }[] = []): { id: number; name: string }[] {
-  if (Array.isArray(node)) node.forEach((x) => findIds(x, acc));
-  else if (node && typeof node === "object") {
+  if (Array.isArray(node)) {
+    for (const x of node) findIds(x, acc);
+  } else if (node && typeof node === "object") {
     const o = node as Record<string, unknown>;
-    if (typeof o.id === "number") acc.push({ id: o.id, name: typeof o.name === "string" ? o.name : JSON.stringify(o.name ?? "") });
+    if (typeof o.id === "number")
+      acc.push({ id: o.id, name: typeof o.name === "string" ? o.name : JSON.stringify(o.name ?? "") });
     for (const [k, v] of Object.entries(o)) if (k !== "_links" && k !== "key") findIds(v, acc);
   }
   return acc;
@@ -145,7 +147,9 @@ async function main() {
   const idx = await api(token, "/data/wow/ruleset/index", NS_DYNAMIC, "ruleset-index");
   console.log(`ruleset index: HTTP ${idx.status}, ${idx.bytes} bytes`);
   if (idx.status !== 200) {
-    console.log("  → body saved to explore-output/ruleset-index.json. Stopping: the endpoint/namespace assumption (A3/A4) is wrong.");
+    console.log(
+      "  → body saved to explore-output/ruleset-index.json. Stopping: the endpoint/namespace assumption (A3/A4) is wrong.",
+    );
     return;
   }
   const rulesets = findIds(idx.body);
@@ -163,7 +167,9 @@ async function main() {
     const res = await api(token, path, NS_DYNAMIC, `ruleset-${r.id}-auctions`);
     const houses = res.body ? findHouses(res.body) : new Map<number, string>();
     housesByRuleset.set(r.id, houses);
-    console.log(`\nruleset ${r.id} (${r.name}, ${d?.status?.type ?? "?"}): ${path} → HTTP ${res.status}, ${houses.size} houses`);
+    console.log(
+      `\nruleset ${r.id} (${r.name}, ${d?.status?.type ?? "?"}): ${path} → HTTP ${res.status}, ${houses.size} houses`,
+    );
     for (const [id, name] of houses) console.log(`  house ${id}: ${name}`);
   }
 
@@ -184,7 +190,12 @@ async function main() {
   const report: Record<string, unknown>[] = [];
   for (const [hid, h] of allHouses) {
     const rid = h.rulesets[0];
-    const res = await api(token, `/data/wow/ruleset/${rid}/auctions/${hid}/commodities`, NS_DYNAMIC, `commodities-${hid}`);
+    const res = await api(
+      token,
+      `/data/wow/ruleset/${rid}/auctions/${hid}/commodities`,
+      NS_DYNAMIC,
+      `commodities-${hid}`,
+    );
     const s = res.status === 200 ? summariseCommodities(res.body) : null;
     console.log(
       `\nhouse ${hid} "${h.name}" (rulesets ${h.rulesets.join(",")}): HTTP ${res.status}, ` +
@@ -200,15 +211,25 @@ async function main() {
       const p = s.probeMin.get(Number(id));
       console.log(`    ${name.padEnd(22)} ${p ? `${gsc(p.min).padStart(14)}  (${p.qty} listed)` : "—"}`);
     }
-    report.push({ house: hid, name: h.name, rulesets: h.rulesets, listings: s.listings, items: s.items, lastModified: res.lastModified });
+    report.push({
+      house: hid,
+      name: h.name,
+      rulesets: h.rulesets,
+      listings: s.listings,
+      items: s.items,
+      lastModified: res.lastModified,
+    });
   }
   // 4. Does If-Modified-Since work? (A13) Retry the first non-empty house.
   const probe = report.find((r) => (r.listings as number) > 0);
   if (probe?.lastModified) {
     const rid = (probe.rulesets as number[])[0];
-    const res = await fetch(`${HOST}/data/wow/ruleset/${rid}/auctions/${probe.house}/commodities?namespace=${NS_DYNAMIC}&locale=${LOCALE}`, {
-      headers: { Authorization: `Bearer ${token}`, "If-Modified-Since": probe.lastModified as string },
-    });
+    const res = await fetch(
+      `${HOST}/data/wow/ruleset/${rid}/auctions/${probe.house}/commodities?namespace=${NS_DYNAMIC}&locale=${LOCALE}`,
+      {
+        headers: { Authorization: `Bearer ${token}`, "If-Modified-Since": probe.lastModified as string },
+      },
+    );
     await res.body?.cancel();
     console.log(`\nIf-Modified-Since on house ${probe.house}: HTTP ${res.status} (304 = supported)`);
   }
@@ -217,9 +238,16 @@ async function main() {
   if (probe && rulesets.length > 1) {
     const other = rulesets.find((r) => r.id !== (probe.rulesets as number[])[0]);
     if (other) {
-      const res = await api(token, `/data/wow/ruleset/${other.id}/auctions/${probe.house}/commodities`, NS_DYNAMIC, `commodities-${probe.house}-via-${other.id}`);
+      const res = await api(
+        token,
+        `/data/wow/ruleset/${other.id}/auctions/${probe.house}/commodities`,
+        NS_DYNAMIC,
+        `commodities-${probe.house}-via-${other.id}`,
+      );
       const s = res.status === 200 ? summariseCommodities(res.body) : null;
-      console.log(`House ${probe.house} via ruleset ${other.id}: HTTP ${res.status}, ${s?.listings ?? "?"} listings (vs ${probe.listings})`);
+      console.log(
+        `House ${probe.house} via ruleset ${other.id}: HTTP ${res.status}, ${s?.listings ?? "?"} listings (vs ${probe.listings})`,
+      );
     }
   }
 
@@ -228,7 +256,9 @@ async function main() {
   for (const [id, expected] of Object.entries(PROBE_ITEMS)) {
     const res = await api(token, `/data/wow/item/${id}`, NS_STATIC, `item-${id}`);
     const name = (res.body as { name?: unknown } | null)?.name;
-    console.log(`  ${id}: HTTP ${res.status} → ${typeof name === "string" ? name : JSON.stringify(name)} ${name === expected ? "✓" : `(expected ${expected})`}`);
+    console.log(
+      `  ${id}: HTTP ${res.status} → ${typeof name === "string" ? name : JSON.stringify(name)} ${name === expected ? "✓" : `(expected ${expected})`}`,
+    );
   }
 
   await writeFile(join(OUT_DIR, "summary.json"), JSON.stringify(report, null, 2));

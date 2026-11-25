@@ -21,7 +21,7 @@ export class Api {
       fetch("https://oauth.battle.net/token", {
         method: "POST",
         headers: {
-          Authorization: "Basic " + Buffer.from(`${id}:${secret}`).toString("base64"),
+          Authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: "grant_type=client_credentials",
@@ -42,10 +42,15 @@ export class Api {
   async commodities(
     house: number,
     ifModifiedSince?: string,
-  ): Promise<{ status: "unchanged" } | { status: "ok"; lastModified: string | null; raw: string; listings: Listing[] | undefined }> {
+  ): Promise<
+    | { status: "unchanged" }
+    | { status: "ok"; lastModified: string | null; raw: string; listings: Listing[] | undefined }
+  > {
     const headers: Record<string, string> = { Authorization: `Bearer ${this.token}` };
     if (ifModifiedSince) headers["If-Modified-Since"] = ifModifiedSince;
-    const res = await withRetry(() => fetch(this.url(`/data/wow/ruleset/1/auctions/${house}/commodities`, "dynamic"), { headers }));
+    const res = await withRetry(() =>
+      fetch(this.url(`/data/wow/ruleset/1/auctions/${house}/commodities`, "dynamic"), { headers }),
+    );
     if (res.status === 304) {
       await res.body?.cancel();
       return { status: "unchanged" };
@@ -58,7 +63,9 @@ export class Api {
 
   /** Item metadata from the static namespace. Returns null on 404. */
   async item(id: number): Promise<Record<string, unknown> | null> {
-    const res = await withRetry(() => fetch(this.url(`/data/wow/item/${id}`, "static"), { headers: { Authorization: `Bearer ${this.token}` } }));
+    const res = await withRetry(() =>
+      fetch(this.url(`/data/wow/item/${id}`, "static"), { headers: { Authorization: `Bearer ${this.token}` } }),
+    );
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`item ${id}: HTTP ${res.status}`);
     return (await res.json()) as Record<string, unknown>;

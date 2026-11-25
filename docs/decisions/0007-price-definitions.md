@@ -3,10 +3,12 @@
 Status: **Proposed** (2026-11-25)
 
 ## Context
+
 The UI says things like "price is low compared to normal". Those words need one precise meaning,
 used the same way everywhere (site, signals, stockpile P/L, craft margins).
 
 ## Decision
+
 - **Market price** = current **p10** (quantity-weighted 10th percentile).
   It's what you'd actually pay for a meaningful quantity. The single cheapest listing (`min`) is often
   1 unit and easy to manipulate, so it's shown but never used for decisions.
@@ -17,5 +19,6 @@ used the same way everywhere (site, signals, stockpile P/L, craft margins).
 - Stockpile value and craft margins use market price; selling applies the 5% AH cut.
 
 ## Consequences
+
 - Everything the user sees can be explained with two numbers: market and normal.
 - Needs hourly history, so only watchlist items get "cheap" signals. Other items only get daily-based info.

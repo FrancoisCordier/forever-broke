@@ -11,7 +11,10 @@ export function aggregate(listings: readonly Listing[]): Map<number, Stats> {
     const id = l.item?.id;
     if (typeof id !== "number") continue;
     let arr = byItem.get(id);
-    if (!arr) byItem.set(id, (arr = []));
+    if (!arr) {
+      arr = [];
+      byItem.set(id, arr);
+    }
     arr.push(l);
   }
   const out = new Map<number, Stats>();

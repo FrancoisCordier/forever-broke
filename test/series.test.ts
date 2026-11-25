@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { appendHourly, emptyDaily, emptyHourly, foldDaily, HOURLY_RETENTION_S } from "../src/shared/series.ts";
 import { formatGold } from "../src/shared/gold.ts";
+import { appendHourly, emptyDaily, emptyHourly, foldDaily, HOURLY_RETENTION_S } from "../src/shared/series.ts";
 import type { Stats } from "../src/shared/types.ts";
 
 const s = (min: number, qty = 10): Stats => ({ min, p10: min + 1, median: min + 2, qty, listings: 1 });

@@ -11,9 +11,12 @@
     "resolve-items": "node --env-file-if-exists=.env scripts/resolve-items.ts",
     "collect": "node --env-file-if-exists=.env src/collector/main.ts",
     "test": "vitest run",
-    "fetch-recipes": "node --env-file-if-exists=.env scripts/fetch-recipes.ts"
+    "fetch-recipes": "node --env-file-if-exists=.env scripts/fetch-recipes.ts",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.9",
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2",
     "vitest": "^5.1.1"
