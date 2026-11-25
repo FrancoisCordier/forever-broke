@@ -1,6 +1,6 @@
 # Architecture
 
-Status: **Draft.** Sections marked *(proposed)* depend on ADRs that aren't accepted yet.
+Status: **Collector implemented (phase 1, 2026-11-25).** Site and signals not yet built.
 
 ```
 GitHub Actions (cron, hourly)
@@ -9,8 +9,8 @@ GitHub Actions (cron, hourly)
        ├─ commodities per house ──► eu.api.blizzard.com (dynamic-forever-eu)
        ├─ item metadata (new IDs only) ──► static-forever-eu
        ├─ aggregate → hourly points, daily rollups, latest + signals
-       ├─ raw snapshot (gzip) ──► workflow artifact (short retention)      (proposed, ADR-0004)
-       └─ commit JSON ──► `data` branch (single squashed commit)            (proposed, ADR-0003)
+       ├─ raw snapshot (gzip) ──► workflow artifact (short retention)      (ADR-0004)
+       └─ commit JSON ──► `data` branch (single squashed commit)            (ADR-0003)
 
 GitHub Pages (static)
   └─ site (Vite + TS + Preact) ── fetches JSON from the `data` branch
@@ -22,8 +22,8 @@ Optional: tools/update_addon.ts ── latest.json ──► Data.lua ──► 
 ## Components
 | Component | Tech | Notes |
 |---|---|---|
-| Collector | TypeScript on Node 22+, built-in `fetch`, `yaml`, Vitest *(proposed, ADR-0006)* | Stateless: reads the previous JSON from the `data` branch, writes the new JSON. |
-| Scheduler | GitHub Actions `schedule` | Cron is best-effort: runs are often late and sometimes dropped. Schedule at an odd minute (e.g. `:17`). The collector never assumes a run happened on the hour (see "Time" below). |
+| Collector | TypeScript on Node 22+, built-in `fetch`, `yaml`, Vitest (ADR-0006) | Stateless: reads the previous JSON from the `data` branch, writes the new JSON. |
+| Scheduler | GitHub Actions `schedule` | Cron is best-effort: runs are often late and sometimes dropped. Runs at `:17` and `:47`: two slots so a dropped run costs ≤ 30 min, and the second is nearly free when the snapshot is unchanged (304). The collector never assumes a run happened on the hour (see "Time" below). |
 | Site | Vite + TypeScript + Preact, uPlot for charts *(proposed)* | No backend. Dark theme, mobile-friendly. |
 | Addon | Lua, Classic-style UI API *(unverified for Forever)* | Phase 4. |
 
@@ -38,14 +38,19 @@ All prices are integer copper.
 ### Layout on the `data` branch
 ```
 data/
-  meta.json                  # last run, per-house last snapshot time, collector version, errors
+  meta.json                  # last run, per-house status/Last-Modified/errors, snapshots per day
+  config.json                # copy of config.yaml for the site
   items.json                 # id → {name, icon, quality, stackSize}
   {house}/latest.json        # one row per item: current values + signals (site loads this first)
   {house}/hourly/{item}.json # rolling 30 days
   {house}/daily/{item}.json  # daily rollup, kept forever
 ```
 Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an array of objects.
-Whether hourly history covers every item or only the watchlist is in [ADR-0004](decisions/0004-collect-broadly.md).
+- Hourly files: **watchlist items only**. When an item is absent from a snapshot, it gets a point with `qty 0` and `null` prices.
+- Daily files: **every commodity item** on every house. `min` is the lowest min of the day. `p10`/`median`/`qty`/`listings` are the mean over the snapshots where the item was present, and `n` counts them. `meta.snapshotsPerDay` gives the denominator, so presence = `n / snapshotsPerDay`.
+- `latest.json` rows: `[min, p10, median, qty, listings]`.
+- `config.json` on the data branch mirrors `config.yaml` (houses, watchlist, thresholds), so the site doesn't have to parse YAML.
+- Measured on 2026-11-25: ~13k files, ~1.7 MB total. One run takes ~5 s for 12 houses (item metadata is a one-time ~80 s).
 
 ## Signals
 Computed in the collector and written into `latest.json`. Thresholds live in `config.yaml`.
@@ -68,5 +73,8 @@ will trigger them all the time. See open questions.
 - `recipes.yaml`: product → reagents + quantities (+ source/verified flag).
 
 ## Failure handling
-- Retry once with backoff. If it still fails, skip that house for this run, record it in `meta.json`, and exit non-zero only if *every* house failed.
+- Retry once (5 s delay) on network error, 429 or 5xx.
+- If it still fails, skip that house for this run, record it in `meta.json`, and exit non-zero only if *every* house failed.
+- A house that previously had ≥ 1000 listings and returns none is **rejected** (previous data kept).
+- A snapshot whose `Last-Modified` equals the stored one is skipped, whether it comes back as a 304 or a 200.
 - The site shows data age prominently ("last snapshot 3h ago").
