@@ -1,0 +1,103 @@
+# Collector configuration. See docs/architecture.md.
+region: eu
+
+# All non-empty houses (ADR-0004). 112/115/118 are always empty (A7b) and are skipped.
+# "set" groups are a hypothesis (A8), except that 110 is confirmed as the owner's house.
+houses:
+  - { id: 110, label: "Alliance (mine)", faction: alliance, set: A }
+  - { id: 113, label: "Horde (set A?)", faction: horde, set: A }
+  - { id: 116, label: "Blackwater (set A?)", faction: blackwater, set: A }
+  - { id: 111, label: "Alliance (set B)", faction: alliance, set: B }
+  - { id: 114, label: "Horde (set B?)", faction: horde, set: B }
+  - { id: 117, label: "Blackwater (set B?)", faction: blackwater, set: B }
+  - { id: 119, label: "Alliance (set D)", faction: alliance, set: D }
+  - { id: 120, label: "Horde (set D)", faction: horde, set: D }
+  - { id: 121, label: "Blackwater (set D)", faction: blackwater, set: D }
+  - { id: 123, label: "Alliance (set E)", faction: alliance, set: E }
+  - { id: 124, label: "Horde (set E)", faction: horde, set: E }
+  - { id: 125, label: "Blackwater (set E)", faction: blackwater, set: E }
+
+# Watchlist items get hourly history (30 days). Every commodity gets daily history regardless.
+# Every ID below was verified against static-forever-eu on 2026-11-25 (pnpm resolve-items <ids>).
+watchlist:
+  flasks:
+    13510: Flask of the Titans
+    13511: Flask of Distilled Wisdom
+    13512: Flask of Supreme Power
+    13513: Flask of Chromatic Resistance
+    274273: Flask of Natural Accuracy     # new in Forever
+    274274: Flask of Natural Aggression   # new in Forever
+    274275: Flask of Natural Precision    # new in Forever
+    274276: Flask of Natural Swiftness    # new in Forever
+  potions:
+    13457: Greater Fire Protection Potion
+    13456: Greater Frost Protection Potion
+    13458: Greater Nature Protection Potion
+    13459: Greater Shadow Protection Potion
+    13461: Greater Arcane Protection Potion
+    13460: Greater Holy Protection Potion
+    13446: Major Healing Potion
+    13444: Major Mana Potion
+    18253: Major Rejuvenation Potion
+    13442: Mighty Rage Potion
+    3387: Limited Invulnerability Potion
+    5634: Free Action Potion
+    13455: Greater Stoneshield Potion
+  elixirs:
+    13452: Elixir of the Mongoose
+    9206: Elixir of Greater Strength
+    9187: Elixir of Greater Agility
+    13454: Greater Arcane Elixir
+    9264: Elixir of Shadow Power
+    17708: Elixir of Frost Power
+    13453: Elixir of Brute Force
+    13447: Elixir of the Sages
+    13445: Elixir of Greater Defense
+    20007: Mageblood Elixir
+    20004: Major Troll's Blood Elixir
+    12820: Winterfall Firewater
+    # New Forever elixir line (250328–250354) exists: evaluate from daily data before adding.
+  herbs:
+    13468: Black Lotus
+    8846: Gromsblood
+    13463: Dreamfoil
+    13465: Mountain Silversage
+    13466: Plaguebloom
+    13464: Golden Sansam
+    13467: Icecap
+    8838: Sungrass
+  elemental:
+    7068: Elemental Fire
+    7070: Elemental Water
+    7067: Elemental Earth
+    7069: Elemental Air
+    7078: Essence of Fire
+    7076: Essence of Earth
+    7080: Essence of Water
+    7082: Essence of Air
+    12803: Living Essence
+    12808: Essence of Undeath
+  other:
+    8925: Crystal Vial
+    13423: Stonescale Oil
+    13422: Stonescale Eel
+    12360: Arcanite Bar
+    12363: Arcane Crystal
+    12359: Thorium Bar
+    20520: Dark Rune
+    12662: Demonic Rune
+  food:
+    13928: Grilled Squid
+    13931: Nightfin Soup
+    18254: Runn Tum Tuber Surprise
+    21023: Dirge's Kickin' Chimaerok Chops
+    20452: Smoked Desert Dumplings
+
+# Signal thresholds (used from phase 2). Defaults from the brief.
+thresholds:
+  belowMedianPct: 20
+  squeezeQtyDropPct: 30
+  spikePct: 40
+  crossFactionGapPct: 25
+  minUnitsListed: 20      # ignore items with fewer units listed
+  minHistoryFraction: 0.7 # a 7-day window needs ≥ 70% of its hourly points

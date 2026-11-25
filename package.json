@@ -1,0 +1,24 @@
+{
+  "name": "forever-broke",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "explore": "node --env-file-if-exists=.env scripts/explore-api.ts",
+    "typecheck": "tsc --noEmit",
+    "resolve-items": "node --env-file-if-exists=.env scripts/resolve-items.ts",
+    "collect": "node --env-file-if-exists=.env src/collector/main.ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
+  "packageManager": "pnpm@11.13.0"
+}

@@ -1,0 +1,70 @@
+name: collect
+
+on:
+  schedule:
+    # Odd minutes: GitHub delays top-of-hour crons. Two slots/hour so a dropped run costs ≤ 30 min;
+    # unchanged snapshots are skipped via If-Modified-Since (304), so the extra run is nearly free.
+    - cron: "17 * * * *"
+    - cron: "47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Previous data (absent on the very first run).
+      - name: Fetch data branch
+        run: |
+          if git ls-remote --exit-code --heads origin data >/dev/null; then
+            git fetch --depth=1 origin data
+            git worktree add out origin/data
+          else
+            mkdir -p out
+          fi
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Collect
+        env:
+          BNET_CLIENT_ID: ${{ secrets.BNET_CLIENT_ID }}
+          BNET_CLIENT_SECRET: ${{ secrets.BNET_CLIENT_SECRET }}
+          DATA_DIR: out/data
+          RAW_DIR: raw
+        run: pnpm collect
+
+      # ADR-0003: the data branch is a single orphan commit, force-pushed each run.
+      - name: Publish data branch
+        run: |
+          cd out
+          if [ ! -e .git ]; then git init -q -b data; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q --orphan next
+          git add -A data
+          git commit -q -m "data $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" next:data
+
+      # ADR-0004: raw snapshots kept briefly so aggregates can be rebuilt after a bug fix.
+      - name: Upload raw snapshots
+        if: hashFiles('raw/*') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-${{ github.run_id }}
+          path: raw/
+          retention-days: 14
+          compression-level: 0 # already gzipped
