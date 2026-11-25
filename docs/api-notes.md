@@ -22,8 +22,10 @@ with the date and how we checked. Code must not depend on an `UNVERIFIED` fact w
 | A13 | `If-Modified-Since` → `304 Not Modified` | VERIFIED | house 110, 2026-11-25 |
 | A14 | Rate limits (retail: 36,000/h, 100/s) apply to Forever namespaces | UNVERIFIED | ~30 calls per run, no throttling seen |
 | A15 | `GET /data/wow/item/{id}` in `static-forever-eu` returns item with name; Classic IDs carry over | VERIFIED | 8/8 probe IDs matched, 2026-11-25 (media/icons not yet tested) |
-| A16 | Recipe/profession data available (to verify `recipes.yaml`) | UNVERIFIED | |
-| A17 | Item IDs for the 4 new Forever flasks | UNKNOWN | |
+| A16 | Profession data: `/profession/index` → `/profession/{id}` → `skill_tiers[]` → `/profession/{id}/skill-tier/{tier}` (categories → recipes) → `/recipe/{id}` = `{crafted_item, crafted_quantity.value, reagents[{reagent, quantity}]}`. 2,494 recipes | VERIFIED | `pnpm fetch-recipes`, 2026-11-25 |
+| A17 | New Forever flasks: 274273 Accuracy, 274274 Aggression, 274275 Precision, 274276 Swiftness | VERIFIED | item search + recipe data, 2026-11-25 |
+| A18 | Item search: `/data/wow/search/item?name.en_GB=…` works in static-forever-eu | VERIFIED | 2026-11-25 |
+| A19 | Item `purchase_price` is per `purchase_quantity` units (Imbued Vial 30000 / 5 = 60s, matching AH) | PLAUSIBLE | Not every item with a purchase_price is actually vendor-sold |
 
 ## Log
 - **2026-11-25** First `pnpm explore` run. 12 non-empty houses, 1.3k–139k listings each.

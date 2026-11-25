@@ -20,6 +20,7 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
 |---|---|
 | `pnpm explore` | Phase 0 API exploration; raw responses saved to `explore-output/` |
 | `pnpm resolve-items <ids…>` / `--search "<name>"` | Verify item IDs against the Forever item database |
+| `pnpm fetch-recipes` | Download all profession recipes + reagents into `recipes.json` |
 | `pnpm collect` | Run the collector locally (`DATA_DIR` defaults to `out/data`) |
 | `pnpm test` / `pnpm typecheck` | Unit tests / type check |
 

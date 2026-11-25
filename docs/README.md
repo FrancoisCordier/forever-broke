@@ -9,6 +9,8 @@ is wrong or a decision changed and the doc wasn't updated. Fix whichever is wron
 | [overview.md](overview.md) | Goal, scope, non-goals, timeline. |
 | [architecture.md](architecture.md) | Components, data flow, storage layout, data model. |
 | [api-notes.md](api-notes.md) | Battle.net API facts, each with a verification status. |
+| [raid-research.md](raid-research.md) | Forever raid consumables, new recipes and reagents (from API data). |
+| [ui.md](ui.md) | Website design. |
 | [open-questions.md](open-questions.md) | Things not yet decided. Each one becomes an ADR once it's decided. |
 | [decisions/](decisions/) | ADRs (architecture decision records), one per decision, numbered. |
 
