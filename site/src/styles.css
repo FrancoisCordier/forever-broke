@@ -310,6 +310,56 @@ p {
   font: inherit;
   font-weight: 600;
 }
+.field select {
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--bar);
+  color: var(--text);
+  font: inherit;
+}
+.field .input-wide {
+  width: 240px;
+  max-width: 100%;
+  color: var(--text);
+  font-weight: 500;
+}
+.field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+.filters-summary {
+  align-self: center;
+  margin-left: auto;
+}
+.sort-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+.sort-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.sort-arrow {
+  font-size: 10px;
+  color: var(--muted);
+}
+th[aria-sort="ascending"],
+th[aria-sort="descending"] {
+  color: var(--text);
+}
 .segmented {
   display: flex;
   gap: 4px;

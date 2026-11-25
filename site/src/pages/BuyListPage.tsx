@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
+import type { BuyListItem } from "../../../src/shared/signals.ts";
 import { BuyCard } from "../components/BuyCard.tsx";
 import { CopyButton } from "../components/CopyButton.tsx";
+import { ItemFilters } from "../components/ItemFilters.tsx";
 import { ItemTable } from "../components/ItemTable.tsx";
 import { Status } from "../components/Status.tsx";
-import { sections } from "../lib/buylist.ts";
+import { applyFilter, NO_FILTER, sections } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
 import { formatWholeGold } from "../lib/format.ts";
+import { sortRows } from "../lib/sort.ts";
 
 const BUDGET_KEY = "forever-broke.budget";
+
+type CardSort = "change" | "cost" | "units" | "name";
+const CARD_SORTS: [CardSort, string][] = [
+  ["change", "Biggest discount"],
+  ["cost", "Cheapest to buy out"],
+  ["units", "Most units available"],
+  ["name", "Name"],
+];
+
+function sortCards(items: BuyListItem[], by: CardSort): BuyListItem[] {
+  if (by === "change") return sortRows(items, (x) => x.change, "asc");
+  if (by === "cost") return sortRows(items, (x) => x.costUpTo, "asc");
+  if (by === "units") return sortRows(items, (x) => x.unitsUpTo, "desc");
+  return sortRows(items, (x) => x.name, "asc");
+}
 
 function useBudget(): [number, (n: number) => void] {
   const [budget, setBudget] = useState(() => Number(localStorage.getItem(BUDGET_KEY) ?? 800) || 0);
@@ -19,9 +37,13 @@ export function BuyListPage() {
   const list = useBuyList();
   const [budget, setBudget] = useBudget();
   const [showCheap, setShowCheap] = useState(false);
+  const [cardSort, setCardSort] = useState<CardSort>("change");
+  const [watchFilter, setWatchFilter] = useState(NO_FILTER);
 
   if (list.state !== "ok") return <Status value={list} />;
   const { buyNow, cheapOther, watch } = sections(list.data.items);
+  const watchShown = applyFilter(watch, watchFilter);
+  const cards = sortCards(buyNow, cardSort);
   const total = buyNow.reduce((s, x) => s + x.costUpTo, 0);
   const history = Math.max(0, ...list.data.items.map((x) => x.normalDays));
 
@@ -78,10 +100,25 @@ export function BuyListPage() {
           <span className="muted">
             At least {list.data.cheapPct}% under its normal price, and used in raid consumables
           </span>
+          {buyNow.length > 1 ? (
+            <>
+              <div className="spacer" />
+              <div className="field field-inline">
+                <label htmlFor="card-sort">Sort</label>
+                <select id="card-sort" value={cardSort} onChange={(e) => setCardSort(e.target.value as CardSort)}>
+                  {CARD_SORTS.map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : null}
         </div>
         {buyNow.length > 0 ? (
           <div className="card-grid">
-            {buyNow.map((x) => (
+            {cards.map((x) => (
               <BuyCard key={x.id} x={x} budget={budget} />
             ))}
           </div>
@@ -95,9 +132,15 @@ export function BuyListPage() {
       <section aria-labelledby="watch" className="stack-md">
         <div className="section-head">
           <h2 id="watch">Watch</h2>
-          <span className="muted">Raid items at their normal price ({watch.length}). Check these daily.</span>
+          <span className="muted">Raid items at their normal price. Check these daily.</span>
         </div>
-        <ItemTable items={watch} />
+        <ItemFilters
+          value={watchFilter}
+          onChange={setWatchFilter}
+          groups={[...new Set(watch.map((x) => x.group))]}
+          summary={`${watchShown.length} of ${watch.length} items`}
+        />
+        <ItemTable items={watchShown} />
       </section>
 
       {cheapOther.length > 0 ? (

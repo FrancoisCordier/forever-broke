@@ -16,20 +16,41 @@ export function raidLabel(x: BuyListItem): string | null {
 export const atVendorPrice = (x: BuyListItem) =>
   x.vendorPrice !== null && x.now !== null && x.now >= x.vendorPrice * 0.98;
 
+/**
+ * An NPC sells it (config.yaml vendorPrices), so its AH price is capped and it's never worth stockpiling.
+ * Hidden from every list. Still used for craft costs.
+ */
+export const isVendor = (x: BuyListItem) => x.vendorPrice !== null;
+
 export interface Sections {
   buyNow: BuyListItem[];
   cheapOther: BuyListItem[];
   watch: BuyListItem[];
 }
 
-/** Split the buy list into the three sections of docs/ui.md. */
+/** Split the buy list into the three sections of docs/ui.md. Vendor items are left out. */
 export function sections(items: BuyListItem[]): Sections {
   const byChange = (a: BuyListItem, b: BuyListItem) => (a.change ?? 0) - (b.change ?? 0);
+  const listed = items.filter((x) => !isVendor(x));
   return {
-    buyNow: items.filter((x) => x.cheap && isRaid(x)).sort(byChange),
-    cheapOther: items.filter((x) => x.cheap && !isRaid(x)).sort(byChange),
-    watch: items.filter((x) => !x.cheap && isRaid(x)).sort((a, b) => a.name.localeCompare(b.name)),
+    buyNow: listed.filter((x) => x.cheap && isRaid(x)).sort(byChange),
+    cheapOther: listed.filter((x) => x.cheap && !isRaid(x)).sort(byChange),
+    watch: listed.filter((x) => !x.cheap && isRaid(x)),
   };
+}
+
+export interface ItemFilter {
+  /** Case-insensitive substring of the item name. */
+  query: string;
+  /** Watchlist group key, or "" for all. */
+  group: string;
+}
+
+export const NO_FILTER: ItemFilter = { query: "", group: "" };
+
+export function applyFilter<T extends { name: string; group: string }>(items: T[], f: ItemFilter): T[] {
+  const q = f.query.trim().toLowerCase();
+  return items.filter((x) => (!q || x.name.toLowerCase().includes(q)) && (!f.group || x.group === f.group));
 }
 
 /** Watchlist group keys (config.yaml) → display names, in display order. */

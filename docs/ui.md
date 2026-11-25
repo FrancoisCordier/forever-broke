@@ -41,6 +41,11 @@ Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to t
 - **Copy name** copies the exact English item name (what the AH search box expects). A toast confirms.
 - **Copy all** at the top copies every _Buy now_ name, one per line. That makes it easy to paste into a list, or into an addon later.
 - Budget field (default 800g): cards show how many units the budget buys. Nothing more clever than that.
+- **Vendor items are hidden everywhere** (owner, 2026-11-25): anything in `config.yaml` → `vendorPrices`
+  (Crystal Vial, Imbued Vial). Their AH price is capped by the vendor, so they're noise. They still count in craft
+  costs (at the cheaper of AH and vendor price). To hide another vendor item, add it to `vendorPrices`.
+- **Lists have search, a group filter and sortable columns**: the Watch table and Raid prep (one filter for the
+  whole page). Buy-now cards have a sort menu (biggest discount, cheapest to buy out, most units, name).
 
 ## Other pages
 
