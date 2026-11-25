@@ -8,13 +8,27 @@ export interface HouseConfig {
   set: string;
 }
 
+export interface Thresholds {
+  belowMedianPct: number;
+  minUnitsListed: number;
+  minNormalDays: number;
+}
+
 export interface Config {
   region: string;
+  /** The owner's house: the only one the buy list is computed for. */
+  focusHouse: number;
+  /** ISO date-time the raids open (shown as a countdown and on charts). */
+  raidOpens: string;
   houses: HouseConfig[];
   /** group → item id → name (name is a human label only; the id is what counts). */
   watchlist: Record<string, Record<string, string>>;
-  thresholds: Record<string, number>;
+  /** item id → vendor price in copper, for items an NPC sells (no point stockpiling above it). */
+  vendorPrices: Record<string, number>;
+  thresholds: Thresholds;
 }
+
+const DEFAULT_THRESHOLDS: Thresholds = { belowMedianPct: 20, minUnitsListed: 20, minNormalDays: 1 };
 
 export async function loadConfig(path = "config.yaml"): Promise<Config> {
   const cfg = parse(await readFile(path, "utf8")) as Config;
@@ -23,8 +37,13 @@ export async function loadConfig(path = "config.yaml"): Promise<Config> {
   }
   for (const h of cfg.houses)
     if (!Number.isInteger(h.id)) throw new Error(`${path}: bad house id ${JSON.stringify(h)}`);
+  if (!cfg.houses.some((h) => h.id === cfg.focusHouse)) {
+    throw new Error(`${path}: focusHouse ${cfg.focusHouse} must be one of the configured houses`);
+  }
+  if (Number.isNaN(Date.parse(cfg.raidOpens))) throw new Error(`${path}: raidOpens must be an ISO date`);
   cfg.watchlist ??= {};
-  cfg.thresholds ??= {};
+  cfg.vendorPrices ??= {};
+  cfg.thresholds = { ...DEFAULT_THRESHOLDS, ...cfg.thresholds };
   return cfg;
 }
 

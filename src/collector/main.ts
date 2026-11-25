@@ -13,9 +13,11 @@ import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import { aggregate } from "../shared/aggregate.ts";
 import { appendHourly, emptyDaily, emptyHourly, foldDaily, utcDate } from "../shared/series.ts";
-import type { DailySeries, HourlySeries, ItemMeta, Latest, Meta, Stats } from "../shared/types.ts";
+import { type BuyList, type BuyListItem, computeSignal, type Ladder, ladderOf } from "../shared/signals.ts";
+import type { DailySeries, HourlySeries, ItemMeta, Latest, Listing, Meta, Stats } from "../shared/types.ts";
 import { Api } from "./api.ts";
-import { type HouseConfig, loadConfig, watchlistIds } from "./config.ts";
+import { type Config, type HouseConfig, loadConfig, watchlistIds } from "./config.ts";
+import { loadRecipes, raidInfo } from "./raid.ts";
 import { pool, readJson, writeJson } from "./store.ts";
 
 const DATA_DIR = process.env.DATA_DIR ?? "out/data";
@@ -37,10 +39,21 @@ async function main() {
   const meta = await readJson<Meta>(metaPath, { version: META_VERSION, lastRun: 0, houses: {}, snapshotsPerDay: {} });
   const seenItems = new Set<number>();
   let ok = 0;
+  let focus: FocusSnapshot | undefined;
+  const onFocus = (f: FocusSnapshot) => {
+    focus = f;
+  };
 
   for (const house of cfg.houses) {
     try {
-      const result = await collectHouse(api, house, meta, watch, seenItems);
+      const result = await collectHouse(
+        api,
+        house,
+        meta,
+        watch,
+        seenItems,
+        house.id === cfg.focusHouse ? onFocus : undefined,
+      );
       log(`house ${house.id} (${house.label}): ${result}`);
       if (meta.houses[house.id].status !== "rejected") ok++;
     } catch (e) {
@@ -50,7 +63,14 @@ async function main() {
     }
   }
 
-  await updateItemMeta(api, seenItems);
+  // Watchlist items too: some (e.g. the new Forever flasks) may not be listed anywhere yet.
+  const items = await updateItemMeta(api, new Set([...seenItems, ...watch]));
+  // Unchanged snapshot: rebuild from stored files anyway, so config and recipe changes apply right away.
+  focus ??= await focusFromDisk(cfg.focusHouse, meta, watch);
+  if (focus) {
+    const n = await writeBuyList(cfg, focus, items, watch);
+    log(`buy list for house ${focus.house}: ${n} cheap items`);
+  }
 
   meta.lastRun = now();
   meta.version = META_VERSION;
@@ -67,12 +87,21 @@ async function main() {
   }
 }
 
+/** What the buy list needs from the focus house's fresh snapshot. */
+interface FocusSnapshot {
+  house: number;
+  t: number;
+  hourly: Map<number, HourlySeries>;
+  ladders: Map<number, Ladder>;
+}
+
 async function collectHouse(
   api: Api,
   house: HouseConfig,
   meta: Meta,
   watch: Set<number>,
   seen: Set<number>,
+  onFocus?: (f: FocusSnapshot) => void,
 ): Promise<string> {
   const prev = meta.houses[house.id];
   const res = await api.commodities(house.id, prev?.lastModified);
@@ -114,12 +143,28 @@ async function collectHouse(
   await writeJson(join(dir, "latest.json"), latest);
 
   // hourly: watchlist items, including a qty-0 point when absent
+  const hourly = new Map<number, HourlySeries>();
   await pool([...watch], 16, async (id) => {
     const p = join(dir, "hourly", `${id}.json`);
     const before = await readJson<HourlySeries>(p, emptyHourly());
     const after = appendHourly(before, t, stats.get(id));
+    hourly.set(id, after);
     if (after !== before) await writeJson(p, after);
   });
+
+  if (onFocus) {
+    const byItem = new Map<number, Listing[]>();
+    for (const l of listings) {
+      const id = l.item?.id;
+      if (!watch.has(id)) continue;
+      const arr = byItem.get(id) ?? [];
+      arr.push(l);
+      byItem.set(id, arr);
+    }
+    const ladders = new Map<number, Ladder>();
+    for (const id of watch) ladders.set(id, ladderOf(byItem.get(id) ?? []));
+    onFocus({ house: house.id, t, hourly, ladders });
+  }
 
   // daily: every item present in this snapshot
   await pool([...stats.entries()], 32, async ([id, s]: [number, Stats]) => {
@@ -144,11 +189,11 @@ async function collectHouse(
 }
 
 /** Fetch metadata for items we have never seen. 404s are cached as {name:null} so they aren't retried every hour. */
-async function updateItemMeta(api: Api, seen: Set<number>) {
+async function updateItemMeta(api: Api, seen: Set<number>): Promise<Record<string, ItemMeta>> {
   const path = join(DATA_DIR, "items.json");
   const items = await readJson<Record<string, ItemMeta>>(path, {});
   const missing = [...seen].filter((id) => !(id in items)).slice(0, MAX_NEW_ITEMS_PER_RUN);
-  if (missing.length === 0) return;
+  if (missing.length === 0) return items;
   let failed = 0;
   await pool(missing, 5, async (id) => {
     try {
@@ -174,6 +219,73 @@ async function updateItemMeta(api: Api, seen: Set<number>) {
   });
   await writeJson(path, items);
   log(`item metadata: ${missing.length - failed} fetched, ${failed} failed`);
+  return items;
+}
+
+/** Focus snapshot rebuilt from the stored hourly files and the previous buy list's ladders. */
+async function focusFromDisk(house: number, meta: Meta, watch: Set<number>): Promise<FocusSnapshot | undefined> {
+  const t = meta.houses[house]?.t;
+  if (!t) return undefined;
+  const dir = join(DATA_DIR, String(house));
+  const prev = await readJson<BuyList | null>(join(dir, "buylist.json"), null);
+  const prevLadders = new Map((prev?.items ?? []).map((x) => [x.id, x.ladder] as const));
+  const hourly = new Map<number, HourlySeries>();
+  const ladders = new Map<number, Ladder>();
+  for (const id of watch) {
+    hourly.set(id, await readJson<HourlySeries>(join(dir, "hourly", `${id}.json`), emptyHourly()));
+    ladders.set(id, prevLadders.get(id) ?? []);
+  }
+  return { house, t, hourly, ladders };
+}
+
+/** Max ladder rows kept per item (enough to cover 2× normal price on any real market). */
+const LADDER_ROWS = 25;
+
+/** Write {focusHouse}/buylist.json: one entry per watchlist item, everything the site's buy list and item page need. */
+async function writeBuyList(
+  cfg: Config,
+  focus: FocusSnapshot,
+  items: Record<string, ItemMeta>,
+  watch: Set<number>,
+): Promise<number> {
+  const raid = raidInfo(watch, items, await loadRecipes());
+  const groupOf = new Map<number, string>();
+  for (const [group, ids] of Object.entries(cfg.watchlist))
+    for (const id of Object.keys(ids ?? {})) groupOf.set(Number(id), group);
+
+  const list: BuyListItem[] = [];
+  for (const id of watch) {
+    const h = focus.hourly.get(id);
+    const ladder = focus.ladders.get(id) ?? [];
+    if (!h) continue;
+    const signal = computeSignal(id, h, ladder, {
+      cheapPct: cfg.thresholds.belowMedianPct,
+      minUnitsListed: cfg.thresholds.minUnitsListed,
+      minNormalDays: cfg.thresholds.minNormalDays,
+    });
+    if (!signal) continue;
+    const info = raid.get(id);
+    list.push({
+      ...signal,
+      name: items[id]?.name ?? cfg.watchlist[groupOf.get(id) ?? ""]?.[id] ?? `Item ${id}`,
+      quality: items[id]?.quality ?? null,
+      group: groupOf.get(id) ?? "",
+      raidProduct: info?.product ?? false,
+      uses: info?.uses ?? [],
+      vendorPrice: cfg.vendorPrices[id] ?? null,
+      ladder: ladder.slice(0, LADDER_ROWS),
+    });
+  }
+
+  const out: BuyList = {
+    house: focus.house,
+    t: focus.t,
+    raidOpens: cfg.raidOpens,
+    cheapPct: cfg.thresholds.belowMedianPct,
+    items: list,
+  };
+  await writeJson(join(DATA_DIR, String(focus.house), "buylist.json"), out);
+  return list.filter((x) => x.cheap).length;
 }
 
 const now = () => Math.floor(Date.now() / 1000);

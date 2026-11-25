@@ -1,6 +1,18 @@
 # Collector configuration. See docs/architecture.md.
 region: eu
 
+# The owner's house (Alliance, confirmed 2026-11-25). The buy list is computed for this house only.
+focusHouse: 110
+
+# First raids open (Barrow Deeps, Hyjal Summit, Onyxia's Lair). Exact unlock hour unknown: start of day UTC.
+raidOpens: "2026-12-09T00:00:00Z"
+
+# Items an NPC vendor sells, in copper per unit (from item purchase_price / purchase_quantity, A19).
+# The AH price can't stay above these, so they're never worth stockpiling.
+vendorPrices:
+  18256: 6000 # Imbued Vial, 60s
+  8925: 500 # Crystal Vial, 5s
+
 # All non-empty houses (ADR-0004). 112/115/118 are always empty (A7b) and are skipped.
 # "set" groups are a hypothesis (A8), except that 110 is confirmed as the owner's house.
 houses:
@@ -121,11 +133,8 @@ watchlist:
     21023: Dirge's Kickin' Chimaerok Chops
     20452: Smoked Desert Dumplings
 
-# Signal thresholds (used from phase 2). Defaults from the brief.
+# Buy-list thresholds (ADR-0007). Sell-side thresholds (spike, squeeze) come with the stockpile phase.
 thresholds:
-  belowMedianPct: 20
-  squeezeQtyDropPct: 30
-  spikePct: 40
-  crossFactionGapPct: 25
+  belowMedianPct: 20 # "cheap" = current p10 at least 20% under the 7-day median
   minUnitsListed: 20 # ignore items with fewer units listed
-  minHistoryFraction: 0.7 # a 7-day window needs ≥ 70% of its hourly points
+  minNormalDays: 1 # don't call anything cheap on less than a day of history
