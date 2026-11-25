@@ -13,16 +13,25 @@ interface Craft {
   missing: string[];
 }
 
-/** Cost of crafting each watchlist consumable from reagents bought at today's "Now" price. */
-function crafts(items: BuyListItem[]): Craft[] {
-  const byId = new Map(items.map((x) => [x.id, x]));
+/**
+ * Cost of crafting each watchlist consumable from reagents bought at today's "Now" price
+ * (or the vendor price, when an NPC sells the reagent for less).
+ */
+function crafts(items: BuyListItem[], prices: Record<string, number>): Craft[] {
+  const vendor = new Map(items.filter((x) => x.vendorPrice !== null).map((x) => [x.id, x.vendorPrice as number]));
+  const priceOf = (id: number): number | null => {
+    const ah = prices[id] ?? null;
+    const npc = vendor.get(id) ?? null;
+    if (ah === null) return npc;
+    return npc === null ? ah : Math.min(ah, npc);
+  };
   return items
     .filter((x) => x.raidProduct && x.recipe)
     .map((x) => {
       let total = 0;
       const missing: string[] = [];
       for (const r of x.recipe?.reagents ?? []) {
-        const price = byId.get(r.id)?.now ?? null;
+        const price = priceOf(r.id);
         if (price === null) missing.push(r.name);
         else total += price * r.qty;
       }
@@ -63,7 +72,7 @@ export function RaidPrepPage() {
               </tr>
             </thead>
             <tbody>
-              {crafts(items).map(({ x, cost, missing }) => {
+              {crafts(items, list.data.reagentPrices ?? {}).map(({ x, cost, missing }) => {
                 const margin = cost !== null && x.now !== null ? Math.round(x.now * 0.95) - cost : null;
                 return (
                   <tr key={x.id}>
@@ -72,20 +81,18 @@ export function RaidPrepPage() {
                         {x.name}
                       </Link>
                     </td>
-                    <td className="gold">
-                      {cost !== null ? (
-                        formatGold(cost)
-                      ) : (
-                        <span className="muted">no price for {missing.join(", ")}</span>
-                      )}
-                    </td>
+                    {cost !== null ? (
+                      <td className="gold">{formatGold(cost)}</td>
+                    ) : (
+                      <td className="note">not listed: {missing.join(", ")}</td>
+                    )}
                     <td className={x.now === null ? "muted" : "gold"}>
                       {x.now === null ? "not listed" : formatGold(x.now)}
                     </td>
                     <td className={margin === null ? "muted" : margin > 0 ? "cheap" : "soft"}>
                       {margin === null ? "—" : `${margin > 0 ? "+" : "−"}${formatGold(Math.abs(margin))}`}
                     </td>
-                    <td className="note">
+                    <td className="note recipe">
                       {x.recipe?.reagents.map((r) => `${r.qty} ${r.name}`).join(", ")}
                       {x.recipe && x.recipe.makes !== 1 ? ` → ${x.recipe.makes}` : ""}
                     </td>

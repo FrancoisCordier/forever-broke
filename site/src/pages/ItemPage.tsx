@@ -106,7 +106,15 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
           <strong className="gold">{x.now === null ? "not listed" : formatGold(x.now)}</strong>
         </div>
         <div className="tile">
-          <span>Normal ({x.normalDays < 7 ? `${x.normalDays} days of data` : "7-day median"})</span>
+          <span>
+            Normal (
+            {x.normalDays >= 7
+              ? "7-day median"
+              : x.normalDays < 1
+                ? "under a day of data"
+                : `${x.normalDays} days of data`}
+            )
+          </span>
           <strong>{x.normal === null ? "—" : formatGold(x.normal)}</strong>
         </div>
         <div className="tile">
@@ -157,7 +165,13 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
             Same order as the in-game AH.
             {x.upTo !== null ? ` Highlighted rows are at or under the buy-up-to price (${formatGold(x.upTo)}).` : ""}
           </p>
-          {x.ladder.length > 0 ? <Ladder x={x} /> : <p className="muted">Nothing listed.</p>}
+          {x.ladder.length > 0 ? (
+            <Ladder x={x} />
+          ) : (
+            <p className="muted">
+              {x.qty > 0 ? "Listing details arrive with the next auction house snapshot." : "Nothing listed."}
+            </p>
+          )}
           {x.unitsUpTo > 0 ? (
             <p>
               Buying the {x.unitsUpTo.toLocaleString("en-GB")} highlighted units costs{" "}

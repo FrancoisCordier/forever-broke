@@ -1,7 +1,9 @@
-# forever-broke
+# Forever Broke
 
 Personal auction house tracker for **WoW Forever (EU)**: hourly price and supply history, with
 buy and sell signals focused on raid consumables. A decision aid only: nothing buys or posts automatically.
+
+**Site:** <https://francoiscordier.github.io/forever-broke/>. The buy list for house 110 shows what's cheap now and how far down the AH list to buy, with one-click "copy name" for the AH search box.
 
 Design decisions and verified API facts live in [`docs/`](docs/README.md), which is the source of truth.
 
@@ -14,7 +16,8 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
    `BNET_CLIENT_ID` and `BNET_CLIENT_SECRET`.
 4. The `collect` workflow runs twice an hour (`:29`, `:54`, just after the API refreshes at ~:22) and force-pushes the aggregated data to the
    `data` branch. Run it by hand from the Actions tab (_collect → Run workflow_).
-5. _(Phase 2)_ GitHub Pages for the website.
+5. **GitHub Pages**: _Settings → Pages → Source: GitHub Actions_. The `pages` workflow builds and deploys
+   the site whenever site code changes on `main`. The site reads data live from the `data` branch.
 
 ## Commands
 
@@ -24,9 +27,11 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
 | `pnpm resolve-items <ids…>` / `--search "<name>"` | Verify item IDs against the Forever item database                 |
 | `pnpm fetch-recipes`                              | Download all profession recipes + reagents into `recipes.json`    |
 | `pnpm collect`                                    | Run the collector locally (`DATA_DIR` defaults to `out/data`)     |
-| `pnpm test` / `pnpm typecheck`                    | Unit tests / type check                                           |
+| `pnpm dev`                                        | Site dev server (reads live data; override with `VITE_DATA_BASE`) |
+| `pnpm build` / `pnpm preview`                     | Build the site into `dist/` / serve the build locally             |
+| `pnpm test` / `pnpm typecheck` / `pnpm lint`      | Unit tests / type check (collector + site) / Biome                |
 
 ## Configuration
 
-- `config.yaml`: houses, watchlist (hourly history), signal thresholds.
+- `config.yaml`: focus house, raid date, houses, watchlist (hourly history), vendor prices, thresholds.
 - Every commodity on every configured house gets daily history, whether or not it's on the watchlist.

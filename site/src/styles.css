@@ -476,10 +476,18 @@ p {
 .table tbody tr:last-child td {
   border-bottom: 0;
 }
+.table .gold,
+.table .soft,
+.table .cheap {
+  white-space: nowrap;
+}
 .table .note {
   color: var(--muted);
   font-size: 13.5px;
   max-width: 320px;
+}
+.table .recipe {
+  min-width: 280px;
 }
 .ladder .within {
   background: var(--within);

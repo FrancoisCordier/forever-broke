@@ -278,12 +278,24 @@ async function writeBuyList(
     });
   }
 
+  // Reagent prices come from latest.json (every item in the snapshot), so craft costs don't
+  // depend on every reagent being on the watchlist.
+  const latest = await readJson<Latest | null>(join(DATA_DIR, String(focus.house), "latest.json"), null);
+  const reagentPrices: Record<string, number> = {};
+  for (const x of list) {
+    for (const r of x.recipe?.reagents ?? []) {
+      const row = latest?.items[r.id];
+      if (row) reagentPrices[r.id] = row[1]; // p10
+    }
+  }
+
   const out: BuyList = {
     house: focus.house,
     t: focus.t,
     raidOpens: cfg.raidOpens,
     cheapPct: cfg.thresholds.belowMedianPct,
     items: list,
+    reagentPrices,
   };
   await writeJson(join(DATA_DIR, String(focus.house), "buylist.json"), out);
   return list.filter((x) => x.cheap).length;

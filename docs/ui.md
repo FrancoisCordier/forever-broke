@@ -1,6 +1,7 @@
 # UI design (phase 2)
 
-Status: **Proposed** (2026-11-25), awaiting owner feedback.
+Status: **Accepted** (2026-11-25) and implemented in `site/`. App name: **Forever Broke**.
+Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to the owner).
 
 ## Principles
 
@@ -48,14 +49,13 @@ Status: **Proposed** (2026-11-25), awaiting owner feedback.
 - **Stockpile** (phase 3): lots with qty, unit cost, value at market price, P/L after the 5% cut.
   After 9 Dec this page flips to _Sell_: lots whose market price is ≥ X% above cost and above normal.
 
-## Collector changes needed
+## Data: `{focusHouse}/buylist.json`
 
-- **Depth for watchlist items**: per item, cumulative units at increasing prices, e.g. `[[price, cumQty], …]`
-  up to 2× normal, capped at ~20 steps. Stored in `latest-depth.json` (house 110 only).
-  This powers "37 units available below 4g 88s".
-- Signals computed in the collector per ADR-0007 → `110/signals.json`.
+Written by the collector for the focus house only (see architecture.md). One entry per watchlist item:
+the ADR-0007 signal (now, normal, change, buy-up-to, units and cost up to it, supply change, 7-day spark),
+the current **ladder** (units per price, cheapest first, ≤ 25 rows), recipes that use it (`uses`, raid ones flagged),
+its own recipe if crafted, and vendor price. `reagentPrices` gives the current p10 of every reagent of those recipes.
 
 ## Tech
 
-Vite + TypeScript + Preact + uPlot, hosted on GitHub Pages. It reads JSON from the `data` branch. Dark theme, mobile-first.
-`src/shared` provides the gold formatting and signal logic.
+See [ADR-0008](decisions/0008-site-stack.md): Vite + React + TypeScript on GitHub Pages, hash routing, Recharts.

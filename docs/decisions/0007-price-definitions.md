@@ -1,6 +1,6 @@
 # ADR-0007: Definitions of "market price" and "normal price"
 
-Status: **Proposed** (2026-11-25)
+Status: **Accepted** (2026-11-25). Implemented in `src/shared/signals.ts`, with thresholds in `config.yaml`.
 
 ## Context
 

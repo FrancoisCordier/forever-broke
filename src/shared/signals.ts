@@ -74,6 +74,8 @@ export interface BuyList {
   raidOpens: string;
   cheapPct: number;
   items: BuyListItem[];
+  /** Current p10 of every reagent used by a watchlist recipe (item id → copper), for craft costs. */
+  reagentPrices: Record<string, number>;
 }
 
 export interface SignalOptions {

@@ -1,6 +1,6 @@
 # Architecture
 
-Status: **Collector implemented (phase 1, 2026-11-25).** Site and signals not yet built.
+Status: **Collector, buy-list signals and site implemented (phases 1–2, 2026-11-25).** Stockpile (phase 3) not yet built.
 
 ```
 GitHub Actions (cron, hourly)
@@ -8,15 +8,16 @@ GitHub Actions (cron, hourly)
        ├─ OAuth token ──► oauth.battle.net
        ├─ commodities per house ──► eu.api.blizzard.com (dynamic-forever-eu)
        ├─ item metadata (new IDs only) ──► static-forever-eu
-       ├─ aggregate → hourly points, daily rollups, latest + signals
+       ├─ aggregate → hourly points, daily rollups, latest
+       ├─ focus house only: buylist.json (signals, AH depth, raid tags)   (ADR-0007)
        ├─ raw snapshot (gzip) ──► workflow artifact (short retention)      (ADR-0004)
        └─ commit JSON ──► `data` branch (single squashed commit)            (ADR-0003)
 
-GitHub Pages (static)
-  └─ site (Vite + TS + Preact) ── fetches JSON from the `data` branch
-       └─ stockpile in localStorage (+ JSON export/import)
+GitHub Pages (static, redeployed only when site code changes)
+  └─ site (Vite + React + TS) ── fetches JSON live from the `data` branch   (ADR-0008)
+       └─ budget (later: stockpile) in localStorage
 
-Optional: tools/update_addon.ts ── latest.json ──► Data.lua ──► ForeverScanner addon
+Later, maybe: tools/update_addon.ts ── buylist.json ──► Data.lua ──► addon
 ```
 
 ## Components
@@ -25,8 +26,8 @@ Optional: tools/update_addon.ts ── latest.json ──► Data.lua ──► 
 | --------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Collector | TypeScript on Node 22+, built-in `fetch`, `yaml`, Vitest (ADR-0006) | Stateless: reads the previous JSON from the `data` branch, writes the new JSON.                                                                                                                                                                                                                                                         |
 | Scheduler | GitHub Actions `schedule`                                           | Cron is best-effort: runs are often late and sometimes dropped. Runs at `:29` and `:54`. API snapshots refresh at ~:22 past the hour, so `:29` catches the new one and `:54` is a safety net that costs almost nothing (304) when the snapshot is unchanged. The collector never assumes a run happened on the hour (see "Time" below). |
-| Site      | Vite + TypeScript + Preact, uPlot for charts _(proposed)_           | No backend. Dark theme, mobile-friendly.                                                                                                                                                                                                                                                                                                |
-| Addon     | Lua, Classic-style UI API _(unverified for Forever)_                | Phase 4.                                                                                                                                                                                                                                                                                                                                |
+| Site      | Vite + React + TypeScript, Recharts (ADR-0008)                      | No backend. Dark theme, mobile-friendly. `site/`; deployed by `.github/workflows/pages.yml`.                                                                                                                                                                                                                                            |
+| Addon     | Lua, Classic-style UI API _(unverified for Forever)_                | Not planned for now (owner, 2026-11-25).                                                                                                                                                                                                                                                                                                |
 
 ## Data model
 
@@ -43,10 +44,11 @@ All prices are integer copper.
 data/
   meta.json                  # last run, per-house status/Last-Modified/errors, snapshots per day
   config.json                # copy of config.yaml for the site
-  items.json                 # id → {name, icon, quality, stackSize}
-  {house}/latest.json        # one row per item: current values + signals (site loads this first)
+  items.json                 # id → {name, quality, cls, sub, level}
+  {house}/latest.json        # one row per item: current values
   {house}/hourly/{item}.json # rolling 30 days
   {house}/daily/{item}.json  # daily rollup, kept forever
+  {focusHouse}/buylist.json  # what the site loads: signals + depth + recipes per watchlist item (docs/ui.md)
 ```
 Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an array of objects.
 
@@ -58,25 +60,28 @@ Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an arr
 
 ## Signals
 
-Computed in the collector and written into `latest.json`. Thresholds live in `config.yaml`.
-A signal **only fires once its window has enough data** (e.g. at least 5 of the 7 days for a 7-day median).
-Otherwise the signal reads "insufficient history" rather than firing on two days of data.
+Computed in the collector (`src/shared/signals.ts`) for the focus house and written into `buylist.json`.
+Thresholds live in `config.yaml`.
 
-| Signal            | Rule (defaults from brief)                                |
-| ----------------- | --------------------------------------------------------- |
-| Below median      | `p10` ≤ 0.80 × 7-day median                               |
-| Supply squeeze    | quantity ≤ 0.70 × 3-day avg **and** price above 3-day avg |
-| Spike             | `min` ≥ 1.40 × 14-day median                              |
-| Cross-faction gap | ≥ 25% cheaper in another tracked house                    |
-| Craft margin      | product × 0.95 − Σ reagents > 0                           |
+| Signal        | Rule                                                                                        | Status      |
+| ------------- | ------------------------------------------------------------------------------------------- | ----------- |
+| Cheap         | `p10` ≤ (1 − 20%) × 7-day median of `p10`, ≥ 20 units listed, ≥ 1 day of history (ADR-0007) | Implemented |
+| Supply change | quantity now vs mean over the previous 3 days (shown, not a signal by itself)               | Implemented |
+| Craft margin  | product × 0.95 − Σ reagents (site, Raid prep page)                                          | Implemented |
+| Spike / sell  | for the stockpile phase                                                                     | Not yet     |
+| Cross-faction | dropped for now: owner trades on house 110 only                                             | Not planned |
 
-Signals will need a minimum-volume guard (e.g. ignore items with < N units listed), or a single listing
-will trigger them all the time. See open questions.
+**Raid relevance** (`src/collector/raid.ts`): an item is a raid consumable if it's on the watchlist and its item
+class is Consumable. An item is raid-relevant if it is one, or is a reagent in a recipe that makes one.
+Season of Discovery recipes and items named "NYI" are ignored.
+
+When house 110's snapshot is unchanged (304), the buy list is rebuilt from the stored hourly files and the previous
+ladders, so config or recipe changes apply on the next run.
 
 ## Config files
 
-- `config.yaml`: region, houses `[{id, label}]`, watchlist groups, thresholds.
-- `recipes.yaml`: product → reagents + quantities (+ source/verified flag).
+- `config.yaml`: region, focus house, raid date, houses, watchlist groups, vendor prices, thresholds.
+- `recipes.json`: every profession recipe with reagents, generated from the API (`pnpm fetch-recipes`). Don't edit by hand.
 
 ## Failure handling
 
