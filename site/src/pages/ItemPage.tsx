@@ -93,11 +93,16 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
             ) : null}
           </div>
         </div>
-        <CopyButton
-          text={x.name}
-          ariaLabel={`Copy item name ${x.name}`}
-          done={`Copied “${x.name}”. Paste it in the AH search box`}
-        />
+        <div className="head-controls">
+          <Link to={`/stockpile?add=${x.id}`} className="btn btn-secondary">
+            Add to stockpile
+          </Link>
+          <CopyButton
+            text={x.name}
+            ariaLabel={`Copy item name ${x.name}`}
+            done={`Copied “${x.name}”. Paste it in the AH search box`}
+          />
+        </div>
       </section>
 
       <section aria-label="Current numbers" className="tiles">

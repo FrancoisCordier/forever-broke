@@ -57,8 +57,12 @@ Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to t
   Natural flasks, for now) are named but not priced. Choices are kept in localStorage. "Copy shopping list" copies
   the item names.
 - **Raid prep**: every watchlist group with now vs normal and the countdown. Craft table: flask cost from reagents vs flask price, when one is listed.
-- **Stockpile** (phase 3): lots with qty, unit cost, value at market price, P/L after the 5% cut.
-  After 9 Dec this page flips to _Sell_: lots whose market price is ≥ X% above cost and above normal.
+- **Stockpile** (`#/stockpile`, ADR-0011): add a lot (any item seen on the AH, qty, price paid typed as `11g 55s`
+  or `11.55`, why: to resell / for my raids / alt's levelling mats). Header: paid, worth after the 5% cut, P/L.
+  _Sell now_ cards on top when a resell or alt lot meets both sell rules. One table per purpose: qty (edit it down
+  after selling part), paid, now, normal, sell-at price, worth, P/L, status (Sell / At target, not a spike / Hold /
+  Keep / Not listed). Copy backup / Restore moves lots between browsers. The item page has "Add to stockpile".
+  There's no date switch: the Sell flag appears whenever the numbers meet the rules.
 
 ## Data: `{focusHouse}/buylist.json`
 

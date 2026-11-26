@@ -182,7 +182,8 @@ p {
 .lead {
   max-width: 640px;
 }
-.lead strong {
+/* Unclassed only, so .gold / .cheap / .loss keep their colors in a lead paragraph. */
+.lead strong:not(:where([class])) {
   color: var(--text);
 }
 .page-foot {
@@ -219,6 +220,10 @@ p {
 }
 .cheap {
   color: var(--blue);
+  font-weight: 700;
+}
+.loss {
+  color: #ffaaa5;
   font-weight: 700;
 }
 .small {
@@ -554,6 +559,70 @@ th[aria-sort="descending"] {
 }
 .table .kit-slot {
   min-width: 220px;
+}
+.table .loss {
+  white-space: nowrap;
+}
+.lot-date {
+  display: block;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* Stockpile */
+.add-lot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+}
+.add-lot .grow {
+  flex: 1 1 260px;
+}
+.add-lot .input-wide {
+  width: 100%;
+}
+.add-lot-btn {
+  height: 44px;
+}
+.form-error {
+  flex-basis: 100%;
+  color: #ffaaa5;
+  font-size: 13.5px;
+}
+.tag-sell {
+  background: rgba(79, 209, 160, 0.16);
+  color: #6fe0b4;
+  font-weight: 700;
+}
+.sell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sell-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-color: rgba(79, 209, 160, 0.35);
+}
+.restore summary {
+  cursor: pointer;
+  color: var(--soft);
+  padding: 8px 0;
+}
+.restore textarea {
+  width: 100%;
+  max-width: 640px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--bar);
+  color: var(--text);
+  font:
+    13px ui-monospace,
+    monospace;
 }
 .table .cell-select {
   max-width: 240px;
