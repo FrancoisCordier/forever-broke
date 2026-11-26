@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { appendHourly, emptyHourly } from "../src/shared/series.ts";
-import { belowCraft, buyable, computeSignal, costOfUnits, craftCost, ladderOf, median } from "../src/shared/signals.ts";
+import {
+  belowCraft,
+  buyable,
+  computeSignal,
+  costOfUnits,
+  craftCost,
+  ladderOf,
+  median,
+  notListed,
+} from "../src/shared/signals.ts";
 import type { Listing, Stats } from "../src/shared/types.ts";
 
 const H = 3600;
@@ -85,6 +94,14 @@ describe("computeSignal", () => {
   it("downsamples the spark to one point per 3 hours", () => {
     const s = computeSignal(1, series(Array(24).fill(1000)), [], opt);
     expect(s?.spark.length).toBe(8);
+  });
+
+  it("returns null without history; notListed stands in for it", () => {
+    expect(computeSignal(1, series([]), [], opt)).toBeNull();
+    const s = notListed(1, 100);
+    expect(s.now).toBeNull();
+    expect(s.cheap).toBe(false);
+    expect(s.qty).toBe(0);
   });
 });
 

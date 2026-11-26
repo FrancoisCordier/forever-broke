@@ -248,6 +248,24 @@ export function computeSignal(id: number, h: HourlySeries, ladder: Ladder, opt: 
   };
 }
 
+/** Signal for a watched item with no history yet (e.g. just added to the watchlist): shown as "not listed". */
+export const notListed = (id: number, t: number): ItemSignal => ({
+  id,
+  t,
+  now: null,
+  min: null,
+  qty: 0,
+  normal: null,
+  normalDays: 0,
+  change: null,
+  upTo: null,
+  unitsUpTo: 0,
+  costUpTo: 0,
+  supplyChange: null,
+  cheap: false,
+  spark: [],
+});
+
 /**
  * Reagent cost per crafted unit (ADR-0010). `priceOf` gives a reagent's unit price (already the cheaper of AH and
  * vendor), or null when it isn't listed; those reagents are returned in `missing` and the cost is null.
