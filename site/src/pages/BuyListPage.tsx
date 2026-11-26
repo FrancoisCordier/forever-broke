@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { BuyListItem } from "../../../src/shared/signals.ts";
+import { BelowCraftTable } from "../components/BelowCraftTable.tsx";
 import { BuyCard } from "../components/BuyCard.tsx";
 import { CopyButton } from "../components/CopyButton.tsx";
 import { ItemFilters } from "../components/ItemFilters.tsx";
@@ -41,7 +42,7 @@ export function BuyListPage() {
   const [watchFilter, setWatchFilter] = useState(NO_FILTER);
 
   if (list.state !== "ok") return <Status value={list} />;
-  const { buyNow, cheapOther, watch } = sections(list.data.items);
+  const { buyNow, belowCraft, cheapOther, watch } = sections(list.data.items);
   const watchShown = applyFilter(watch, watchFilter);
   const cards = sortCards(buyNow, cardSort);
   const total = buyNow.reduce((s, x) => s + x.costUpTo, 0);
@@ -128,6 +129,19 @@ export function BuyListPage() {
           </p>
         )}
       </section>
+
+      {belowCraft.length > 0 ? (
+        <section aria-labelledby="below-craft" className="stack-md">
+          <div className="section-head">
+            <h2 id="below-craft">Under craft cost</h2>
+            <span className="muted">
+              Raid consumables selling at least {list.data.belowCraftPct ?? 10}% under what their reagents cost today.
+              Cheaper to buy than to craft; no history needed.
+            </span>
+          </div>
+          <BelowCraftTable items={belowCraft} />
+        </section>
+      ) : null}
 
       <section aria-labelledby="watch" className="stack-md">
         <div className="section-head">

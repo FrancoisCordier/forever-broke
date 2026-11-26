@@ -3,6 +3,7 @@ import { HashRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout.tsx";
 import { ToastProvider } from "./components/Toast.tsx";
 import { BuyListPage } from "./pages/BuyListPage.tsx";
+import { KitPage } from "./pages/KitPage.tsx";
 import { RaidPrepPage } from "./pages/RaidPrepPage.tsx";
 
 // The item page pulls in the charting library: load it only when opened.
@@ -17,6 +18,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<BuyListPage />} />
             <Route path="/raid" element={<RaidPrepPage />} />
+            <Route path="/kit" element={<KitPage />} />
             <Route
               path="/item/:id"
               element={

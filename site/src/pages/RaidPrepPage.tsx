@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import type { BuyListItem } from "../../../src/shared/signals.ts";
+import { type BuyListItem, craftCost } from "../../../src/shared/signals.ts";
 import { ItemFilters } from "../components/ItemFilters.tsx";
 import { ItemTable } from "../components/ItemTable.tsx";
 import { SortHeader } from "../components/SortHeader.tsx";
@@ -41,14 +41,7 @@ function crafts(items: BuyListItem[], prices: Record<string, number>): Craft[] {
   return items
     .filter((x) => x.raidProduct && x.recipe)
     .map((x) => {
-      let total = 0;
-      const missing: string[] = [];
-      for (const r of x.recipe?.reagents ?? []) {
-        const price = priceOf(r.id);
-        if (price === null) missing.push(r.name);
-        else total += price * r.qty;
-      }
-      const cost = missing.length ? null : Math.round(total / (x.recipe?.makes || 1));
+      const { cost, missing } = x.recipe ? craftCost(x.recipe, priceOf) : { cost: null, missing: [] };
       const margin = cost !== null && x.now !== null ? Math.round(x.now * (1 - AH_CUT)) - cost : null;
       return { x, name: x.name, group: x.group, cost, margin, missing };
     });

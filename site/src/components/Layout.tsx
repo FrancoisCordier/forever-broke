@@ -40,6 +40,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/" end>
               Buy list
             </NavLink>
+            <NavLink to="/kit">My kit</NavLink>
             <NavLink to="/raid">Raid prep</NavLink>
           </nav>
           <div className="spacer" />

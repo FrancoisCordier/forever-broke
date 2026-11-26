@@ -41,7 +41,23 @@ Demand per flask: 12–18 Demonsage or Marefoil. One raider using one flask per 
 - Sweetpaw Jam (Hyjal food, uses Hyjal Berries), EZ-Thro Dark Bomb / Thorium Grenade, Forceful/Mystic Rugged Armor Kits.
 - Crafting materials for new gear: Fel Crystal (~9.8g), Legionite Bar (~34g, from Transmute: Legionite), Fel Hide (~4g), Heavy Thorium Bar.
 
-All of these are in `config.yaml` → `watchlist.forever_raid` (hourly history).
+The consumables above are in `config.yaml` → `watchlist.forever_raid` (hourly history). The gear crafting
+materials were dropped from the watchlist on 2026-11-26 (scope: raid consumables and their reagents). Their
+daily history is still recorded (ADR-0004).
+
+## Classic items Forever changed (item tooltips, 2026-11-26)
+
+- **Grilled Squid** (13928): well fed = **+1% crit** for 15 min (not +10 Agi).
+- **Potion of Demon Slaying** (9224): +180 AP against demons for 5 min, 2 min cooldown. Only worth something if
+  the new raids' bosses are demons, which nothing confirms yet.
+- **Major Frenzy Potion** (250943) says "+80 Attack Power". Whether that includes ranged AP is untested.
+- Never listed on any house so far, so probably not released yet: Juju Power/Might, R.O.I.D.S., Ground Scorpok
+  Assay, Cerebral Cortex Compound, Brilliant Wizard/Mana Oil, Elemental Sharpening Stone.
+
+## Craft cost of the Natural flasks (2026-11-26)
+
+At house 110 prices, reagents for one Natural flask cost 18–19.5g, most of it the Death Lotus (11.55g, up from
+~6g the day before). None is listed yet. Expect them to list at that or above.
 
 ## Unknowns
 

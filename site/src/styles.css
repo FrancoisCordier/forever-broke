@@ -539,6 +539,26 @@ th[aria-sort="descending"] {
 .table .recipe {
   min-width: 280px;
 }
+.table .qty-input,
+.table .cell-select {
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--bar);
+  color: var(--text);
+  font: inherit;
+}
+.table .qty-input {
+  width: 72px;
+}
+.table .kit-slot {
+  min-width: 220px;
+}
+.table .cell-select {
+  max-width: 240px;
+  margin-bottom: 4px;
+}
 .ladder .within {
   background: var(--within);
 }
