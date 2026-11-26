@@ -34,8 +34,8 @@ houses:
 # Scope (2026-11-26): level-60 raid consumables and the reagents that make them. Gear crafting mats
 # (Fel Crystal, Legionite Bar, Fel Hide, Arcanite) and reagents of nothing raid-related were dropped.
 # Every ID below was verified against static-forever-eu (pnpm resolve-items <ids>).
-# Not added because they've never been listed in Forever yet (2026-11-26): Juju Power/Might, R.O.I.D.S.,
-# Ground Scorpok Assay, Cerebral Cortex Compound, Brilliant Wizard/Mana Oil, Elemental Sharpening Stone.
+# Never listed on house 110 so far (2026-11-26), so not watched: Juju Power, R.O.I.D.S., Cerebral Cortex
+# Compound, Brilliant Wizard Oil, Elemental Sharpening Stone. The few in a raid kit are watched anyway (`buffs`).
 watchlist:
   flasks:
     13510: Flask of the Titans
@@ -78,6 +78,7 @@ watchlist:
     20007: Mageblood Elixir
     20004: Major Troll's Blood Elixir
     12820: Winterfall Firewater
+    9179: Elixir of Greater Intellect # +25 Int, 1 h
     # Level-55 Forever elixirs are in forever_raid. Lower ones are covered by daily data.
   forever_raid:
     # New in Forever. Flasks only work in Mount Hyjal / Hyjal Summit / Barrow Deeps (verified item text 2026-11-25).
@@ -129,45 +130,91 @@ watchlist:
     21023: Dirge's Kickin' Chimaerok Chops
     20452: Smoked Desert Dumplings
     18045: Tender Wolf Steak
+    250072: Swiftstrike Steak # Forever: well fed = +20 Agi, 15 min
+    12217: Dragonbreath Chili # melee fire proc, 10 min
+  buffs:
+    # In a raid kit but never listed on house 110 yet (2026-11-26). Watched so they show up when they are.
+    12460: Juju Might # +40 AP, 10 min. Forever classes it as a quest item
+    8412: Ground Scorpok Assay # +25 Agi, 1 h
+    20748: Brilliant Mana Oil # weapon: 15 mana / 5 s, +30 healing, 30 min
   utility:
     12404: Dense Sharpening Stone
     12643: Dense Weightstone
     10646: Goblin Sapper Charge
     18641: Dense Dynamite
     15993: Thorium Grenade
+    18588: Ez-Thro Dynamite II # no Engineering needed
     14530: Heavy Runecloth Bandage
 
 # Raid kits for the "My kit" page. Quantities are per raid night (~3 h); the page lets you change them.
 # Every item must be on the watchlist (that's where its price comes from). A slot with several
 # options means "pick one"; the first is the default.
 kits:
+  # From the owner's hunter guide (2026-11-26). Different elixirs stack (no battle/guardian split in Classic);
+  # only the +2% crit from elixirs doesn't (Mongoose, Sages, Owl, Grizzly). Each row below is a separate buff.
+  # Not in the kit: the guide's ammo (Swiftfeather Arrow / Swiftstrike Shot, epic, not sold on the AH).
   hunter_mm:
     label: Hunter · Marksmanship
     slots:
       - slot: Flask
         perNight: 2 # 2 h each, persists through death
-        options: [274273, 274274]
-        note: Natural Accuracy while you're under the hit cap, otherwise Natural Aggression. Raid zones only.
+        options: [274274, 274273]
+        note: The guide's pick is Natural Aggression. Natural Accuracy only if you're under the hit cap. Raid zones only.
       - slot: Agility elixir
-        perNight: 6
-        options: [13452, 250328, 250350]
-        note: Mongoose (+25 Agi, +2% crit) beats Cunning and Ferocity. Whether they stack is untested.
+        perNight: 6 # 30 min
+        options: [13452, 250328]
+        note: Mongoose (+25 Agi, +2% crit). The crit doesn't stack with other crit elixirs.
+      - slot: Ferocity
+        perNight: 6 # 30 min
+        options: [250350]
+        note: +18 Str/Agi, stacks with Mongoose.
+      - slot: Intellect
+        perNight: 3 # 1 h
+        options: [9179]
       - slot: Mana regen
-        perNight: 6
+        perNight: 6 # 30 min
         options: [250341]
+      - slot: Spirit
+        perNight: 6 # 30 min
+        options: [250338]
+        note: Elixir of Sages. Only its +25 Spirit adds; its crit overlaps with Mongoose's.
+      - slot: Health
+        perNight: 6 # 30 min
+        options: [250335]
+      - slot: Scorpok
+        perNight: 3 # 1 h, 1 h cooldown
+        options: [8412]
+        note: Never listed on the AH so far.
+      - slot: Juju Might
+        perNight: 6 # 10 min: one per boss
+        options: [12460]
+        note: Never listed on the AH so far.
+      - slot: Combat potion
+        perNight: 4 # one per boss
+        options: [250943]
+        note: Major Frenzy Potion, the guide's pick.
       - slot: Mana potion
         perNight: 3
         options: [13444]
+      - slot: Rune
+        perNight: 2
+        options: [12662, 20520]
+        note: Demonic Rune (the guide's pick) or Dark Rune.
       - slot: Healing potion
         perNight: 2
         options: [13446]
+      - slot: Weapon oil
+        perNight: 6 # 30 min
+        options: [20748]
+        note: Brilliant Mana Oil. Never listed on the AH so far.
       - slot: Food
-        perNight: 6 # well fed lasts 15 min: eat before each boss
-        options: [13928]
-      - slot: Attack power potion
-        perNight: 0
-        options: [250943]
-        note: “+80 Attack Power”. Check in game that it raises ranged AP before buying.
+        perNight: 8 # well fed lasts 15 min
+        options: [250072, 12217, 13928]
+        note: Swiftstrike Steak (+20 Agi in Forever) is the guide's pick.
+      - slot: Explosives
+        perNight: 6 # 1 min cooldown, a few per boss
+        options: [18588, 10646]
+        note: Ez-Thro Dynamite II needs no Engineering. Goblin Sapper Charge does.
 
 # Buy-list thresholds (ADR-0007). Sell-side thresholds (spike, squeeze) come with the stockpile phase.
 thresholds:
@@ -178,3 +225,8 @@ thresholds:
   # Stockpile sell flag (ADR-0011): both must hold.
   sellAboveCostPct: 30 # after the 5% AH cut, at least 30% above what you paid
   sellAboveNormalPct: 15 # and the market at least 15% above its normal price (a spike, not a new normal)
+  # "Resell" on the Buy list (ADR-0012), from estimated sales over the last 3 days:
+  flipMarginPct: 15 # relisting at the average price paid, after the 5% cut, beats the buy price by 15%+
+  flipHoldDays: 2 # suggest at most ~2 days of sales, so the units actually sell
+  flipMinSalesHours: 12 # hours of sales data needed before flagging anything
+  flipMinProfitGold: 5 # not worth the trip below this total profit

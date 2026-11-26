@@ -12,6 +12,15 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import { aggregate } from "../shared/aggregate.ts";
+import {
+  appendSales,
+  type Book,
+  bookRows,
+  emptySales,
+  estimateSales,
+  type SalesSeries,
+  summarizeSales,
+} from "../shared/sales.ts";
 import { appendHourly, emptyDaily, emptyHourly, foldDaily, utcDate } from "../shared/series.ts";
 import {
   type BuyList,
@@ -21,6 +30,7 @@ import {
   craftCost,
   type Ladder,
   ladderOf,
+  resaleOf,
 } from "../shared/signals.ts";
 import type { DailySeries, HourlySeries, ItemMeta, Latest, Listing, Meta, Stats } from "../shared/types.ts";
 import { Api } from "./api.ts";
@@ -102,6 +112,43 @@ interface FocusSnapshot {
   t: number;
   hourly: Map<number, HourlySeries>;
   ladders: Map<number, Ladder>;
+  sales: Map<number, SalesSeries>;
+}
+
+/** Longest gap between two snapshots that still counts for sales: longer gaps hide too much (expiries, reposts). */
+const MAX_SALES_GAP_S = 3 * 3600;
+
+/**
+ * Sales between the previous snapshot (book.json) and this one, per watchlist item (ADR-0012).
+ * Appends to {house}/sales/{item}.json and replaces book.json with this snapshot's listings.
+ */
+async function updateSales(
+  dir: string,
+  t: number,
+  watch: Set<number>,
+  byItem: Map<number, Listing[]>,
+): Promise<Map<number, SalesSeries>> {
+  const prev = await readJson<Book | null>(join(dir, "book.json"), null);
+  const book: Book = { t, items: {} };
+  for (const id of watch) book.items[id] = bookRows(byItem.get(id) ?? []);
+  const dt = prev ? t - prev.t : 0;
+  const prevItems = prev && dt > 0 && dt <= MAX_SALES_GAP_S ? prev.items : null;
+
+  const sales = new Map<number, SalesSeries>();
+  await pool([...watch], 16, async (id) => {
+    const p = join(dir, "sales", `${id}.json`);
+    const before = await readJson<SalesSeries>(p, emptySales());
+    const prevRows = prevItems?.[id];
+    if (!prevRows) {
+      sales.set(id, before);
+      return;
+    }
+    const after = appendSales(before, t, dt, estimateSales(prevRows, book.items[id]));
+    sales.set(id, after);
+    if (after !== before) await writeJson(p, after);
+  });
+  await writeJson(join(dir, "book.json"), book);
+  return sales;
 }
 
 async function collectHouse(
@@ -172,7 +219,8 @@ async function collectHouse(
     }
     const ladders = new Map<number, Ladder>();
     for (const id of watch) ladders.set(id, ladderOf(byItem.get(id) ?? []));
-    onFocus({ house: house.id, t, hourly, ladders });
+    const sales = await updateSales(dir, t, watch, byItem);
+    onFocus({ house: house.id, t, hourly, ladders, sales });
   }
 
   // daily: every item present in this snapshot
@@ -240,11 +288,13 @@ async function focusFromDisk(house: number, meta: Meta, watch: Set<number>): Pro
   const prevLadders = new Map((prev?.items ?? []).map((x) => [x.id, x.ladder] as const));
   const hourly = new Map<number, HourlySeries>();
   const ladders = new Map<number, Ladder>();
+  const sales = new Map<number, SalesSeries>();
   for (const id of watch) {
     hourly.set(id, await readJson<HourlySeries>(join(dir, "hourly", `${id}.json`), emptyHourly()));
     ladders.set(id, prevLadders.get(id) ?? []);
+    sales.set(id, await readJson<SalesSeries>(join(dir, "sales", `${id}.json`), emptySales()));
   }
-  return { house, t, hourly, ladders };
+  return { house, t, hourly, ladders, sales };
 }
 
 /** Max ladder rows kept per item (enough to cover 2× normal price on any real market). */
@@ -272,6 +322,13 @@ async function writeBuyList(
     return npc === null ? ah : Math.min(ah, npc);
   };
 
+  const flipOptions = {
+    flipMarginPct: cfg.thresholds.flipMarginPct,
+    flipHoldDays: cfg.thresholds.flipHoldDays,
+    flipMinSalesHours: cfg.thresholds.flipMinSalesHours,
+    flipMinProfit: cfg.thresholds.flipMinProfitGold * 10000,
+  };
+
   const list: BuyListItem[] = [];
   for (const id of watch) {
     const h = focus.hourly.get(id);
@@ -287,6 +344,8 @@ async function writeBuyList(
     const recipe = info?.recipe ?? null;
     const vendorPrice = cfg.vendorPrices[id] ?? null;
     const cost = recipe && vendorPrice === null ? craftCost(recipe, priceOf).cost : null;
+    const sold = focus.sales.get(id);
+    const sales = sold?.t.length ? summarizeSales(sold, focus.t) : null;
     list.push({
       ...signal,
       name: items[id]?.name ?? cfg.watchlist[groupOf.get(id) ?? ""]?.[id] ?? `Item ${id}`,
@@ -302,6 +361,9 @@ async function writeBuyList(
         belowCraftPct: cfg.thresholds.belowCraftPct,
         minUnitsListed: cfg.thresholds.minUnitsListed,
       }),
+      sales,
+      // Vendor items: anyone can buy more at the vendor price, so there's nothing to resell.
+      ...(vendorPrice === null ? resaleOf(ladder, sales, flipOptions) : { resale: null, flip: false }),
     });
   }
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { type BuyListItem, craftCost } from "../../../src/shared/signals.ts";
+import { AH_CUT, type BuyListItem, craftCost } from "../../../src/shared/signals.ts";
 import { ItemFilters } from "../components/ItemFilters.tsx";
 import { ItemTable } from "../components/ItemTable.tsx";
 import { SortHeader } from "../components/SortHeader.tsx";
@@ -9,9 +9,6 @@ import { applyFilter, GROUPS, isVendor, NO_FILTER } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
 import { formatGold, formatPct, qualityColor } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
-
-/** Selling on the AH costs a 5% cut. */
-const AH_CUT = 0.05;
 
 interface Craft {
   x: BuyListItem;

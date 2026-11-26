@@ -45,6 +45,23 @@ The consumables above are in `config.yaml` → `watchlist.forever_raid` (hourly 
 materials were dropped from the watchlist on 2026-11-26 (scope: raid consumables and their reagents). Their
 daily history is still recorded (ADR-0004).
 
+## Hunter consumables and elixir stacking (owner's guide, 2026-11-26)
+
+From a hunter guide the owner shared (not verified in game by us). Classic has no battle/guardian elixir
+split: elixirs stack unless they give the same buff. The guide's one caveat: **the +2% crit from elixirs
+doesn't stack** (Mongoose, Sages, Owl, Grizzly). Its best-in-slot list for a hunter:
+
+- Flask: **Natural Aggression** (not Accuracy).
+- Elixirs/buffs, all together: Mongoose, Ferocity, Ground Scorpok Assay, Greater Intellect, Juju Might,
+  Greater Mageblood, Sages (for the Spirit), Greater Fortitude.
+- Major Frenzy Potion; Major Mana Potion and Demonic Rune; Brilliant Mana Oil on the weapon.
+- Food: Swiftstrike Steak (Forever: well fed = +20 Agi) or Dragonbreath Chili. Explosives: Ez-Thro Dynamite II,
+  Goblin Sapper Charge. Ammo: Swiftfeather Arrow / Swiftstrike Shot (epic; not commodities, so no AH price).
+
+This is the `hunter_mm` kit in `config.yaml`. Never listed on house 110 so far: Ground Scorpok Assay, Juju
+Might (Forever classes it as a quest item), Brilliant Mana Oil, Demonic Rune. Elixir of Sages is thin
+(3 listed on 26 Nov). On 26 Nov the kit came to ~149g for 4 raid nights before flasks and unlisted items.
+
 ## Classic items Forever changed (item tooltips, 2026-11-26)
 
 - **Grilled Squid** (13928): well fed = **+1% crit** for 15 min (not +10 Agi).

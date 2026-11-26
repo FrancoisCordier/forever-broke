@@ -127,6 +127,22 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
           <strong>{x.min === null ? "—" : formatGold(x.min)}</strong>
         </div>
         <div className="tile">
+          <span>Sold per day (estimate)</span>
+          <strong>
+            {x.sales?.hours ? (
+              <>
+                {x.sales.perDay >= 10 ? Math.round(x.sales.perDay).toLocaleString("en-GB") : x.sales.perDay.toFixed(1)}{" "}
+                <small>
+                  {x.sales.avgPrice ? `@ ${formatGold(x.sales.avgPrice)} · ` : ""}
+                  {x.sales.hours} h of data
+                </small>
+              </>
+            ) : (
+              <small className="muted">measuring…</small>
+            )}
+          </strong>
+        </div>
+        <div className="tile">
           <span>Units listed</span>
           <strong>
             {x.qty.toLocaleString("en-GB")}{" "}

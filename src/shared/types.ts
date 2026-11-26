@@ -2,9 +2,12 @@
 
 /** One commodity listing as returned by the API (A10). */
 export interface Listing {
+  /** Stable across snapshots: same id = same listing (A20). Optional only so tests can omit it. */
+  id?: number;
   item: { id: number };
   quantity: number;
   unit_price: number;
+  time_left?: "SHORT" | "MEDIUM" | "LONG" | "VERY_LONG";
 }
 
 /** Aggregated state of one item in one snapshot. Percentiles are quantity-weighted. */

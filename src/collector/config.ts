@@ -16,6 +16,10 @@ export interface Thresholds {
   belowCraftPct: number;
   sellAboveCostPct: number;
   sellAboveNormalPct: number;
+  flipMarginPct: number;
+  flipHoldDays: number;
+  flipMinSalesHours: number;
+  flipMinProfitGold: number;
 }
 
 /** config.yaml `kits`: kit id → label and slots. Converted to `Kit[]` for the buy list. */
@@ -43,6 +47,10 @@ const DEFAULT_THRESHOLDS: Thresholds = {
   belowCraftPct: 10,
   sellAboveCostPct: 30,
   sellAboveNormalPct: 15,
+  flipMarginPct: 15,
+  flipHoldDays: 2,
+  flipMinSalesHours: 12,
+  flipMinProfitGold: 5,
 };
 
 export async function loadConfig(path = "config.yaml"): Promise<Config> {
@@ -69,6 +77,9 @@ function checkKits(cfg: Config, path: string): void {
   const watch = watchlistIds(cfg);
   for (const [id, kit] of Object.entries(cfg.kits)) {
     if (!kit?.label || !Array.isArray(kit.slots)) throw new Error(`${path}: kit ${id} needs a label and slots`);
+    // Slot names key the viewer's saved choices on the site, so they must be unique within a kit.
+    const names = kit.slots.map((s) => s.slot);
+    if (new Set(names).size !== names.length) throw new Error(`${path}: kit ${id} has duplicate slot names`);
     for (const s of kit.slots) {
       if (!s.slot || !Number.isFinite(s.perNight) || s.perNight < 0 || !Array.isArray(s.options) || !s.options.length)
         throw new Error(`${path}: kit ${id}: bad slot ${JSON.stringify(s)}`);

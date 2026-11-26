@@ -1,81 +1,20 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { type BuyListItem, costOfUnits, type Kit } from "../../../src/shared/signals.ts";
 import { CopyButton } from "../components/CopyButton.tsx";
 import { Status } from "../components/Status.tsx";
-import { isBelowCraft } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
-import { formatGold, formatPct, formatWholeGold, qualityColor } from "../lib/format.ts";
-
-const KIT_KEY = "forever-broke.kit";
-
-/** Per-viewer choices, kept in localStorage: which kit, how many nights, and per-slot overrides. */
-interface KitPrefs {
-  kit: string;
-  nights: number;
-  /** "kitId:slotIndex" → chosen item id. */
-  choice: Record<string, number>;
-  /** "kitId:slotIndex" → units per night. */
-  perNight: Record<string, number>;
-}
-
-const DEFAULT_PREFS: KitPrefs = { kit: "", nights: 4, choice: {}, perNight: {} };
-
-function usePrefs(): [KitPrefs, (p: KitPrefs) => void] {
-  const [prefs, setPrefs] = useState<KitPrefs>(() => {
-    try {
-      return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(KIT_KEY) ?? "{}") };
-    } catch {
-      return DEFAULT_PREFS;
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(KIT_KEY, JSON.stringify(prefs));
-    } catch {
-      // storage blocked: choices just don't persist
-    }
-  }, [prefs]);
-  return [prefs, setPrefs];
-}
-
-interface Row {
-  key: string;
-  slot: string;
-  note?: string;
-  options: BuyListItem[];
-  item: BuyListItem | undefined;
-  perNight: number;
-  need: number;
-  /** Cost of the `units` cheapest listed units (≤ need). */
-  cost: number;
-  units: number;
-}
-
-function rowsOf(kit: Kit, items: BuyListItem[], prefs: KitPrefs): Row[] {
-  const byId = new Map(items.map((x) => [x.id, x]));
-  return kit.slots.map((s, i) => {
-    const key = `${kit.id}:${i}`;
-    const options = s.options.map((id) => byId.get(id)).filter((x): x is BuyListItem => x !== undefined);
-    const chosen = prefs.choice[key];
-    const item = options.find((x) => x.id === chosen) ?? options[0];
-    const perNight = prefs.perNight[key] ?? s.perNight;
-    const need = perNight * prefs.nights;
-    const { units, cost } = item && item.now !== null ? costOfUnits(item.ladder, need) : { units: 0, cost: 0 };
-    return { key, slot: s.slot, note: s.note, options, item, perNight, need, cost, units };
-  });
-}
+import { formatGold, formatWholeGold, qualityColor } from "../lib/format.ts";
+import { goodBuy, type KitPrefs, kitRows, pickKit, useKitPrefs } from "../lib/kit.ts";
 
 export function KitPage() {
   const list = useBuyList();
-  const [prefs, setPrefs] = usePrefs();
+  const [prefs, setPrefs] = useKitPrefs();
   if (list.state !== "ok") return <Status value={list} />;
 
   const kits = list.data.kits ?? [];
-  if (kits.length === 0)
-    return <p className="empty">No kits in this data yet. They appear after the next collector run.</p>;
-  const kit = kits.find((k) => k.id === prefs.kit) ?? kits[0];
-  const rows = rowsOf(kit, list.data.items, prefs);
+  const kit = pickKit(kits, prefs);
+  if (!kit) return <p className="empty">No kits in this data yet. They appear after the next collector run.</p>;
+  const belowCraftPct = list.data.belowCraftPct ?? 10;
+  const rows = kitRows(kit, list.data.items, prefs);
   const wanted = rows.filter((r) => r.need > 0 && r.item);
   const total = wanted.reduce((s, r) => s + r.cost, 0);
   const unpriced = wanted.filter((r) => r.item?.now === null);
@@ -216,10 +155,11 @@ export function KitPage() {
                 <td className="soft">{r.item ? r.item.qty.toLocaleString("en-GB") : "—"}</td>
                 <td>
                   <div className="tags">
-                    {r.item?.cheap ? <span className="tag tag-cheap">{formatPct(r.item.change)} vs normal</span> : null}
-                    {r.item && isBelowCraft(r.item) ? (
-                      <span className="tag tag-cheap">{formatPct(r.item.craftChange)} vs reagents</span>
-                    ) : null}
+                    {(r.item ? (goodBuy(r.item, belowCraftPct)?.reasons ?? []) : []).map((why) => (
+                      <span key={why} className="tag tag-cheap">
+                        {why}
+                      </span>
+                    ))}
                   </div>
                 </td>
               </tr>
