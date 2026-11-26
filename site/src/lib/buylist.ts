@@ -68,6 +68,7 @@ export const GROUPS: [string, string][] = [
   ["potions", "Potions"],
   ["elixirs", "Elixirs"],
   ["food", "Food"],
+  ["buffs", "Other buffs"],
   ["utility", "Stones, explosives, bandages"],
   ["herbs", "Herbs"],
   ["elemental", "Elementals"],

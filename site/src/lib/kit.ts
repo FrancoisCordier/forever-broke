@@ -9,9 +9,9 @@ const KIT_KEY = "forever-broke.kit";
 export interface KitPrefs {
   kit: string;
   nights: number;
-  /** "kitId:slotIndex" → chosen item id. */
+  /** "kitId:slot name" → chosen item id. Keyed by name so reordering slots in config.yaml keeps choices. */
   choice: Record<string, number>;
-  /** "kitId:slotIndex" → units per night. */
+  /** "kitId:slot name" → units per night. */
   perNight: Record<string, number>;
 }
 
@@ -53,8 +53,8 @@ export interface KitRow {
 
 export function kitRows(kit: Kit, items: BuyListItem[], prefs: KitPrefs): KitRow[] {
   const byId = new Map(items.map((x) => [x.id, x]));
-  return kit.slots.map((s, i) => {
-    const key = `${kit.id}:${i}`;
+  return kit.slots.map((s) => {
+    const key = `${kit.id}:${s.slot}`;
     const options = s.options.map((id) => byId.get(id)).filter((x): x is BuyListItem => x !== undefined);
     const chosen = prefs.choice[key];
     const item = options.find((x) => x.id === chosen) ?? options[0];
