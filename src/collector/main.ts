@@ -30,6 +30,7 @@ import {
   craftCost,
   type Ladder,
   ladderOf,
+  notListed,
   resaleOf,
 } from "../shared/signals.ts";
 import type { DailySeries, HourlySeries, ItemMeta, Latest, Listing, Meta, Stats } from "../shared/types.ts";
@@ -333,13 +334,15 @@ async function writeBuyList(
   for (const id of watch) {
     const h = focus.hourly.get(id);
     const ladder = focus.ladders.get(id) ?? [];
-    if (!h) continue;
-    const signal = computeSignal(id, h, ladder, {
-      cheapPct: cfg.thresholds.belowMedianPct,
-      minUnitsListed: cfg.thresholds.minUnitsListed,
-      minNormalDays: cfg.thresholds.minNormalDays,
-    });
-    if (!signal) continue;
+    // No history yet (just added to the watchlist): still listed, as "not listed", so kits show every row.
+    const signal =
+      (h &&
+        computeSignal(id, h, ladder, {
+          cheapPct: cfg.thresholds.belowMedianPct,
+          minUnitsListed: cfg.thresholds.minUnitsListed,
+          minNormalDays: cfg.thresholds.minNormalDays,
+        })) ||
+      notListed(id, focus.t);
     const info = raid.get(id);
     const recipe = info?.recipe ?? null;
     const vendorPrice = cfg.vendorPrices[id] ?? null;
