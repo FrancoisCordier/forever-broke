@@ -13,7 +13,10 @@ while CI installs only the root package. All commands below run **from the repo 
    - Permissions → Repository → **Actions: Read and write** (Metadata: read-only is added automatically)
    - Expiration: no expiration is acceptable (the token can only touch this repo's Actions).
      With an expiry date, set a reminder: runs stop when it expires.
-2. **Cloudflare account**: free plan, <https://dash.cloudflare.com/sign-up>.
+2. **Cloudflare account**: free plan, <https://dash.cloudflare.com/sign-up>. Then open **Workers & Pages** in the
+   dashboard once: that creates the account's workers.dev subdomain, which Cloudflare requires before it accepts
+   Cron Triggers (even though this Worker has no URL). Without it, `worker:deploy` uploads the code but fails on
+   the schedules with error 10063.
 3. From the repo root:
 
    ```sh
@@ -25,7 +28,8 @@ while CI installs only the root package. All commands below run **from the repo 
 
 ## Checking it works
 
-- Actions tab: a `collect` run appears within a minute of `:29` / `:54`, labelled "Manually run".
+- Actions tab: a `collect` run appears within a minute of `:29` / `:54`, labelled "Manually run"
+  (first one: 2026-11-26 10:29:45Z, 45 s after the slot).
 - `pnpm worker:logs` streams the Worker's logs live; a failed dispatch logs `workflow_dispatch failed: <status> …`.
   The Cloudflare dashboard (_Workers → forever-broke-trigger → Logs_) shows past runs.
 - **401**: token expired or revoked → make a new one, `pnpm worker:secret`. **403/404**: token lacks _Actions: write_ on this repo.
