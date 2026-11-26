@@ -1,0 +1,9 @@
+# The root package (collector + site) plus the Cloudflare Worker (ADR-0009).
+# CI installs only the root package (`--filter forever-broke`), so wrangler stays out of the hourly run.
+packages:
+  - worker
+
+# wrangler needs these two install scripts: esbuild's binary and the workerd runtime.
+allowBuilds:
+  esbuild: true
+  workerd: true

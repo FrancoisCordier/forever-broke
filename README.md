@@ -23,15 +23,16 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
 
 ## Commands
 
-| Command                                           | What it does                                                      |
-| ------------------------------------------------- | ----------------------------------------------------------------- |
-| `pnpm explore`                                    | Phase 0 API exploration; raw responses saved to `explore-output/` |
-| `pnpm resolve-items <ids…>` / `--search "<name>"` | Verify item IDs against the Forever item database                 |
-| `pnpm fetch-recipes`                              | Download all profession recipes + reagents into `recipes.json`    |
-| `pnpm collect`                                    | Run the collector locally (`DATA_DIR` defaults to `out/data`)     |
-| `pnpm dev`                                        | Site dev server (reads live data; override with `VITE_DATA_BASE`) |
-| `pnpm build` / `pnpm preview`                     | Build the site into `dist/` / serve the build locally             |
-| `pnpm test` / `pnpm typecheck` / `pnpm lint`      | Unit tests / type check (collector + site) / Biome                |
+| Command                                                | What it does                                                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `pnpm explore`                                         | Phase 0 API exploration; raw responses saved to `explore-output/`                                           |
+| `pnpm resolve-items <ids…>` / `--search "<name>"`      | Verify item IDs against the Forever item database                                                           |
+| `pnpm fetch-recipes`                                   | Download all profession recipes + reagents into `recipes.json`                                              |
+| `pnpm collect`                                         | Run the collector locally (`DATA_DIR` defaults to `out/data`)                                               |
+| `pnpm dev`                                             | Site dev server (reads live data; override with `VITE_DATA_BASE`)                                           |
+| `pnpm build` / `pnpm preview`                          | Build the site into `dist/` / serve the build locally                                                       |
+| `pnpm test` / `pnpm typecheck` / `pnpm lint`           | Unit tests / type check (collector + site) / Biome                                                          |
+| `pnpm worker:deploy` / `worker:secret` / `worker:logs` | Deploy the Cloudflare trigger / set its GitHub token / tail its logs ([worker/README.md](worker/README.md)) |
 
 ## Configuration
 

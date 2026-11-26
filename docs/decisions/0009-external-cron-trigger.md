@@ -22,16 +22,18 @@ or a Cloudflare Worker with a Cron Trigger (code in the repo).
   Worker secret `GITHUB_TOKEN`.
 - `collect.yml` keeps its `schedule` as a **backup**. Duplicate runs are harmless: the `collect` concurrency
   group runs them one at a time, and an unchanged snapshot is a 304 that writes nothing.
-- `worker/` has its own `package.json`, so `wrangler` isn't added to the root install that CI runs every hour.
+- `worker/` is a **pnpm workspace** package (`pnpm-workspace.yaml` at the root): one lockfile, one pnpm pin,
+  `pnpm -r update` updates everything. CI installs only the root package (`--filter forever-broke`), so
+  `wrangler` and the workerd runtime aren't downloaded on every hourly run.
   The trigger logic (`worker/src/trigger.ts`) has no Cloudflare dependency and is tested by the root Vitest.
 
 ## Consequences
 
 - One more account to own (Cloudflare) and one manual deploy (`worker/README.md`). Changing the cron times
   means editing `worker/wrangler.jsonc` and redeploying, in addition to `collect.yml`.
-- The PAT expires. When it does, dispatches fail with 401: visible in the Worker's logs
-  (`pnpm logs` in `worker/`), and the site's "Data … ago" chip goes stale. Renew the token, then rerun
-  `pnpm secret`.
+- If the PAT expires or is revoked, dispatches fail with 401: visible in the Worker's logs
+  (`pnpm worker:logs`), and the site's "Data … ago" chip goes stale. Make a new token, then rerun
+  `pnpm worker:secret`. A non-expiring token is acceptable: it can only touch this repo's Actions.
 - Runs started by `workflow_dispatch` show up as "Manually run" by the PAT's owner in the Actions tab.
 - Unverified: whether GitHub's 60-day inactivity rule (ADR-0005) also blocks `workflow_dispatch` on a
   workflow it has disabled. If it does, the Worker's 4xx errors will show it.
