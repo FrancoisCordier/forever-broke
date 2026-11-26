@@ -16,7 +16,11 @@
     "test": "vitest run",
     "fetch-recipes": "node --env-file-if-exists=.env scripts/fetch-recipes.ts",
     "lint": "biome check .",
-    "lint:fix": "biome check --write ."
+    "lint:fix": "biome check --write .",
+    "worker:login": "pnpm --filter forever-broke-trigger exec wrangler login",
+    "worker:deploy": "pnpm --filter forever-broke-trigger exec wrangler deploy",
+    "worker:secret": "pnpm --filter forever-broke-trigger exec wrangler secret put GITHUB_TOKEN",
+    "worker:logs": "pnpm --filter forever-broke-trigger exec wrangler tail"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.9",

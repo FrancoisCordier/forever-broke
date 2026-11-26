@@ -1,6 +1,8 @@
 name: collect
 
 on:
+  # Main trigger: the Cloudflare Worker in worker/ calls workflow_dispatch at :29/:54 (ADR-0009).
+  # GitHub's schedule drops most runs, so it's only a backup here.
   schedule:
     # API snapshots refresh at ~:22 (A12). :29 catches it (GitHub often adds 5–15 min of delay); :54 is a safety net.
     # Unchanged snapshots are skipped via If-Modified-Since (304), so the extra run is nearly free.
@@ -37,7 +39,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --filter forever-broke # root only, skips the Worker's wrangler
 
       - name: Collect
         env:
