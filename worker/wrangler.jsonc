@@ -1,0 +1,14 @@
+// Cloudflare Worker that starts the `collect` workflow on time (ADR-0009).
+// Deploy: see worker/README.md.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "forever-broke-trigger",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-23",
+  "workers_dev": false,
+  "triggers": {
+    // UTC. API snapshots refresh at ~:22; same slots as the GitHub `schedule` backup in collect.yml.
+    "crons": ["29 * * * *", "54 * * * *"]
+  },
+  "observability": { "enabled": true }
+}

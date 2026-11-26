@@ -1,0 +1,14 @@
+{
+  "name": "forever-broke-trigger",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "secret": "wrangler secret put GITHUB_TOKEN",
+    "logs": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "4.168.0"
+  },
+  "packageManager": "pnpm@11.29.0"
+}
