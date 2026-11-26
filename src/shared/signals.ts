@@ -2,7 +2,11 @@
  * Buy-list signals (ADR-0007). Pure functions shared by the collector and the site.
  *   market = current p10 · normal = median of hourly p10 over 7 days · cheap = market ≤ normal × (1 − pct)
  */
+import type { SalesSummary } from "./sales.ts";
 import type { HourlySeries, Listing } from "./types.ts";
+
+/** Selling on the AH costs a 5% cut. */
+export const AH_CUT = 0.05;
 
 export const NORMAL_WINDOW_S = 7 * 24 * 3600;
 export const SUPPLY_WINDOW_S = 3 * 24 * 3600;
@@ -64,6 +68,49 @@ export interface BuyListItem extends ItemSignal {
   craftChange: number | null;
   /** Market price at least `belowCraftPct` under craft cost, on a market that isn't thin (ADR-0010). */
   belowCraft: boolean;
+  /** Estimated sales over the last 3 days (ADR-0012). Optional: older buy lists lack it. */
+  sales?: SalesSummary | null;
+  /** Buy-to-resell numbers, when there are sales to base them on (ADR-0012). */
+  resale?: Resale | null;
+  /** Listed under what buyers have been paying, by enough margin, and it sells (ADR-0012). */
+  flip?: boolean;
+}
+
+/** Buy now, relist at what buyers have actually been paying (ADR-0012). */
+export interface Resale {
+  /** Average price paid per unit over the sales window: what to relist at. */
+  price: number;
+  /** Highest unit price that still leaves the margin after the 5% AH cut. */
+  buyUpTo: number;
+  /** Units to buy: listed at ≤ buyUpTo, capped at what sells in `flipHoldDays`. */
+  units: number;
+  cost: number;
+  /** units × price × 0.95 − cost. */
+  profit: number;
+}
+
+export interface FlipOptions {
+  flipMarginPct: number; // e.g. 15: resale after the cut ≥ buy price × 1.15
+  flipHoldDays: number; // e.g. 2: never suggest more than ~2 days of sales
+  flipMinSalesHours: number; // e.g. 12: hours of sales data needed before trusting the numbers
+  flipMinProfit: number; // copper, e.g. 50000 = 5g: not worth the trip below this
+}
+
+/** ADR-0012. `resale` whenever something has sold; `flip` only when the evidence and the profit are there. */
+export function resaleOf(
+  ladder: Ladder,
+  sales: SalesSummary | null,
+  opt: FlipOptions,
+): { resale: Resale | null; flip: boolean } {
+  if (!sales?.avgPrice) return { resale: null, flip: false };
+  const price = sales.avgPrice;
+  const buyUpTo = Math.floor((price * (1 - AH_CUT)) / (1 + opt.flipMarginPct / 100));
+  const cap = Math.floor(sales.perDay * opt.flipHoldDays);
+  const { units: listed } = buyable(ladder, buyUpTo);
+  const { units, cost } = costOfUnits(ladder, Math.min(listed, cap));
+  const profit = Math.round(units * price * (1 - AH_CUT)) - cost;
+  const flip = sales.hours >= opt.flipMinSalesHours && units > 0 && profit >= opt.flipMinProfit;
+  return { resale: { price, buyUpTo, units, cost, profit }, flip };
 }
 
 /** One slot of a raid kit (config.yaml `kits`): pick one of `options`, `perNight` units per raid night. */

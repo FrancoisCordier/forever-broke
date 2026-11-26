@@ -2,11 +2,10 @@
  * Stockpile valuation and the sell signal (ADR-0011). Pure functions; lots live in the browser (localStorage).
  *   value = qty × market × (1 − 5% AH cut) · sell = net ≥ cost × (1 + costPct) and market ≥ normal × (1 + normalPct)
  */
-import { median } from "./signals.ts";
+import { AH_CUT, median } from "./signals.ts";
 import type { DailySeries } from "./types.ts";
 
-/** Selling on the AH costs a 5% cut. */
-export const AH_CUT = 0.05;
+export { AH_CUT };
 
 /**
  * Why a lot was bought. Only resale and the alt's levelling mats get sell flags:

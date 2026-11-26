@@ -33,10 +33,16 @@ Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to t
 ```
 
 - **Sections**, in order:
-  1. _Buy now_: cheap (ADR-0007) **and** raid-relevant (watchlist groups flasks/potions/elixirs/forever_raid/herbs…).
-  2. _Under craft cost_ (ADR-0010): raid consumables selling ≥ 10% under their reagents' cost. Table with the recipe.
-  3. _Watch_: raid items at normal price. This list is the one to check every day.
-  4. _Cheap, no raid link_ (collapsed).
+  1. _For your raids_ (ADR-0012): items of the kit chosen on My kit that are a good buy now (cheap vs normal,
+     under craft cost, or under what buyers paid). Need for the chosen nights, buy-up-to price, how many are listed
+     under it and what they cost.
+  2. _To resell_ (ADR-0012): cards with buy N up to X, relist at the average price paid, sells ~N/day, profit after
+     the cut. Until 12 h of sales data exist, a note says how many hours there are so far.
+  3. _Cheap raid items_: cheap (ADR-0007) **and** raid-relevant (watchlist groups flasks/potions/elixirs/forever_raid/herbs…).
+  4. _Under craft cost_ (ADR-0010): raid consumables selling ≥ 10% under their reagents' cost. Table with the recipe.
+  5. _Watch_: raid items at normal price.
+  6. _Cheap, no raid link_ (collapsed).
+- **Item page** also shows "Sold per day (estimate)" with the average price paid and hours of data.
 - **Card**: market vs normal, discount, a 7-day sparkline, and why the item is flagged (badges).
   "Buy up to" price and **units available below it** come from order-book depth (see "Collector changes").
 - **Copy name** copies the exact English item name (what the AH search box expects). A toast confirms.

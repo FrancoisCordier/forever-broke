@@ -178,3 +178,8 @@ thresholds:
   # Stockpile sell flag (ADR-0011): both must hold.
   sellAboveCostPct: 30 # after the 5% AH cut, at least 30% above what you paid
   sellAboveNormalPct: 15 # and the market at least 15% above its normal price (a spike, not a new normal)
+  # "Resell" on the Buy list (ADR-0012), from estimated sales over the last 3 days:
+  flipMarginPct: 15 # relisting at the average price paid, after the 5% cut, beats the buy price by 15%+
+  flipHoldDays: 2 # suggest at most ~2 days of sales, so the units actually sell
+  flipMinSalesHours: 12 # hours of sales data needed before flagging anything
+  flipMinProfitGold: 5 # not worth the trip below this total profit

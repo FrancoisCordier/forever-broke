@@ -16,6 +16,10 @@ export interface Thresholds {
   belowCraftPct: number;
   sellAboveCostPct: number;
   sellAboveNormalPct: number;
+  flipMarginPct: number;
+  flipHoldDays: number;
+  flipMinSalesHours: number;
+  flipMinProfitGold: number;
 }
 
 /** config.yaml `kits`: kit id → label and slots. Converted to `Kit[]` for the buy list. */
@@ -43,6 +47,10 @@ const DEFAULT_THRESHOLDS: Thresholds = {
   belowCraftPct: 10,
   sellAboveCostPct: 30,
   sellAboveNormalPct: 15,
+  flipMarginPct: 15,
+  flipHoldDays: 2,
+  flipMinSalesHours: 12,
+  flipMinProfitGold: 5,
 };
 
 export async function loadConfig(path = "config.yaml"): Promise<Config> {
