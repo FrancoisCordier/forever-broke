@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { BuyListItem } from "../../../src/shared/signals.ts";
-import { raidLabel } from "../lib/buylist.ts";
+import { isBelowCraft, raidLabel } from "../lib/buylist.ts";
 import { formatGold, formatPct, formatWholeGold, qualityColor } from "../lib/format.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import { Sparkline } from "./Sparkline.tsx";
@@ -20,6 +20,7 @@ export function BuyCard({ x, budget }: { x: BuyListItem; budget: number }) {
           </Link>
           <div className="tags">
             {raid ? <span className="tag tag-raid">{raid}</span> : null}
+            {isBelowCraft(x) ? <span className="tag tag-cheap">{formatPct(x.craftChange)} vs reagents</span> : null}
             {x.supplyChange !== null ? <span className="tag">Supply {formatPct(x.supplyChange)} vs 3 days</span> : null}
           </div>
         </div>

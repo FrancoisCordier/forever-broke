@@ -22,18 +22,26 @@ export const atVendorPrice = (x: BuyListItem) =>
  */
 export const isVendor = (x: BuyListItem) => x.vendorPrice !== null;
 
+/** Sells well under what its reagents cost (ADR-0010). `=== true`: buy lists from before ADR-0010 lack the field. */
+export const isBelowCraft = (x: BuyListItem) => x.belowCraft === true;
+
 export interface Sections {
   buyNow: BuyListItem[];
+  /** Raid consumables selling under their reagent cost, most under first. */
+  belowCraft: BuyListItem[];
   cheapOther: BuyListItem[];
   watch: BuyListItem[];
 }
 
-/** Split the buy list into the three sections of docs/ui.md. Vendor items are left out. */
+/** Split the buy list into the sections of docs/ui.md. Vendor items are left out. */
 export function sections(items: BuyListItem[]): Sections {
   const byChange = (a: BuyListItem, b: BuyListItem) => (a.change ?? 0) - (b.change ?? 0);
   const listed = items.filter((x) => !isVendor(x));
   return {
     buyNow: listed.filter((x) => x.cheap && isRaid(x)).sort(byChange),
+    belowCraft: listed
+      .filter((x) => isBelowCraft(x) && isRaid(x))
+      .sort((a, b) => (a.craftChange ?? 0) - (b.craftChange ?? 0)),
     cheapOther: listed.filter((x) => x.cheap && !isRaid(x)).sort(byChange),
     watch: listed.filter((x) => !x.cheap && isRaid(x)),
   };
@@ -60,6 +68,7 @@ export const GROUPS: [string, string][] = [
   ["potions", "Potions"],
   ["elixirs", "Elixirs"],
   ["food", "Food"],
+  ["utility", "Stones, explosives, bandages"],
   ["herbs", "Herbs"],
   ["elemental", "Elementals"],
   ["other", "Other materials"],

@@ -58,6 +58,26 @@ export interface BuyListItem extends ItemSignal {
   ladder: Ladder;
   /** How this item is crafted, if it is (from recipes.json). */
   recipe: CraftRecipe | null;
+  /** Reagent cost per crafted unit at today's prices (ADR-0010), or null if not crafted / a reagent isn't listed. */
+  craftCost: number | null;
+  /** now / craftCost − 1, e.g. −0.32 when it sells 32% under what its reagents cost. */
+  craftChange: number | null;
+  /** Market price at least `belowCraftPct` under craft cost, on a market that isn't thin (ADR-0010). */
+  belowCraft: boolean;
+}
+
+/** One slot of a raid kit (config.yaml `kits`): pick one of `options`, `perNight` units per raid night. */
+export interface KitSlot {
+  slot: string;
+  perNight: number;
+  options: number[];
+  note?: string;
+}
+
+export interface Kit {
+  id: string;
+  label: string;
+  slots: KitSlot[];
 }
 
 export interface CraftRecipe {
@@ -73,6 +93,9 @@ export interface BuyList {
   t: number;
   raidOpens: string;
   cheapPct: number;
+  /** Optional only so the site still reads buy lists written before ADR-0010. */
+  belowCraftPct?: number;
+  kits?: Kit[];
   items: BuyListItem[];
   /** Current p10 of every reagent used by a watchlist recipe (item id → copper), for craft costs. */
   reagentPrices: Record<string, number>;
@@ -106,6 +129,22 @@ export function buyable(ladder: Ladder, maxPrice: number): { units: number; cost
     if (p > maxPrice) break;
     units += n;
     cost += p * n;
+  }
+  return { units, cost };
+}
+
+/**
+ * What buying `n` units costs, cheapest listings first. `units` < n when the ladder runs out
+ * (it's truncated to the cheapest rows, so that can mean "more listed, at higher prices").
+ */
+export function costOfUnits(ladder: Ladder, n: number): { units: number; cost: number } {
+  let units = 0;
+  let cost = 0;
+  for (const [p, q] of ladder) {
+    if (units >= n) break;
+    const take = Math.min(q, n - units);
+    units += take;
+    cost += p * take;
   }
   return { units, cost };
 }
@@ -158,6 +197,41 @@ export function computeSignal(id: number, h: HourlySeries, ladder: Ladder, opt: 
     cheap,
     spark: downsample(h, t - NORMAL_WINDOW_S, 3 * 3600),
   };
+}
+
+/**
+ * Reagent cost per crafted unit (ADR-0010). `priceOf` gives a reagent's unit price (already the cheaper of AH and
+ * vendor), or null when it isn't listed; those reagents are returned in `missing` and the cost is null.
+ */
+export function craftCost(
+  recipe: CraftRecipe,
+  priceOf: (id: number) => number | null,
+): { cost: number | null; missing: string[] } {
+  let total = 0;
+  const missing: string[] = [];
+  for (const r of recipe.reagents) {
+    const p = priceOf(r.id);
+    if (p === null) missing.push(r.name);
+    else total += p * r.qty;
+  }
+  return { cost: missing.length ? null : Math.round(total / (recipe.makes || 1)), missing };
+}
+
+export interface BelowCraftOptions {
+  belowCraftPct: number; // e.g. 10
+  minUnitsListed: number;
+}
+
+/** The ADR-0010 rule: market price ≤ craft cost × (1 − pct), with enough units listed to matter. */
+export function belowCraft(
+  now: number | null,
+  qty: number,
+  cost: number | null,
+  opt: BelowCraftOptions,
+): { craftChange: number | null; belowCraft: boolean } {
+  if (now === null || !cost) return { craftChange: null, belowCraft: false };
+  const craftChange = now / cost - 1;
+  return { craftChange, belowCraft: craftChange <= -opt.belowCraftPct / 100 && qty >= opt.minUnitsListed };
 }
 
 /** Last p10 in each `step`-second bucket from `from` onwards. */

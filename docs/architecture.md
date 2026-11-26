@@ -64,13 +64,14 @@ Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an arr
 Computed in the collector (`src/shared/signals.ts`) for the focus house and written into `buylist.json`.
 Thresholds live in `config.yaml`.
 
-| Signal        | Rule                                                                                        | Status      |
-| ------------- | ------------------------------------------------------------------------------------------- | ----------- |
-| Cheap         | `p10` ≤ (1 − 20%) × 7-day median of `p10`, ≥ 20 units listed, ≥ 1 day of history (ADR-0007) | Implemented |
-| Supply change | quantity now vs mean over the previous 3 days (shown, not a signal by itself)               | Implemented |
-| Craft margin  | product × 0.95 − Σ reagents (site, Raid prep page)                                          | Implemented |
-| Spike / sell  | for the stockpile phase                                                                     | Not yet     |
-| Cross-faction | dropped for now: owner trades on house 110 only                                             | Not planned |
+| Signal           | Rule                                                                                        | Status      |
+| ---------------- | ------------------------------------------------------------------------------------------- | ----------- |
+| Cheap            | `p10` ≤ (1 − 20%) × 7-day median of `p10`, ≥ 20 units listed, ≥ 1 day of history (ADR-0007) | Implemented |
+| Supply change    | quantity now vs mean over the previous 3 days (shown, not a signal by itself)               | Implemented |
+| Craft margin     | product × 0.95 − Σ reagents (site, Raid prep page)                                          | Implemented |
+| Under craft cost | market ≤ (1 − 10%) × reagent cost, ≥ 20 units listed; no history needed (ADR-0010)          | Implemented |
+| Spike / sell     | for the stockpile phase                                                                     | Not yet     |
+| Cross-faction    | dropped for now: owner trades on house 110 only                                             | Not planned |
 
 **Raid relevance** (`src/collector/raid.ts`): an item is a raid consumable if it's on the watchlist and its item
 class is Consumable. An item is raid-relevant if it is one, or is a reagent in a recipe that makes one.
@@ -81,7 +82,9 @@ ladders, so config or recipe changes apply on the next run.
 
 ## Config files
 
-- `config.yaml`: region, focus house, raid date, houses, watchlist groups, vendor prices, thresholds.
+- `config.yaml`: region, focus house, raid date, houses, watchlist groups, vendor prices, thresholds, raid kits.
+  Kits (per class/spec: slots of "pick one of these items", units per raid night) are copied into `buylist.json`
+  for the My kit page. Every kit item must be on the watchlist; `loadConfig` rejects the file otherwise.
 - `recipes.json`: every profession recipe with reagents, generated from the API (`pnpm fetch-recipes`). Don't edit by hand.
 
 ## Failure handling

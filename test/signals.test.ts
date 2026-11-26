@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appendHourly, emptyHourly } from "../src/shared/series.ts";
-import { buyable, computeSignal, ladderOf, median } from "../src/shared/signals.ts";
+import { belowCraft, buyable, computeSignal, costOfUnits, craftCost, ladderOf, median } from "../src/shared/signals.ts";
 import type { Listing, Stats } from "../src/shared/types.ts";
 
 const H = 3600;
@@ -85,5 +85,61 @@ describe("computeSignal", () => {
   it("downsamples the spark to one point per 3 hours", () => {
     const s = computeSignal(1, series(Array(24).fill(1000)), [], opt);
     expect(s?.spark.length).toBe(8);
+  });
+});
+
+describe("costOfUnits", () => {
+  const ladder: [number, number][] = [
+    [100, 2],
+    [150, 3],
+    [400, 10],
+  ];
+  it("walks the ladder cheapest first", () => {
+    expect(costOfUnits(ladder, 4)).toEqual({ units: 4, cost: 2 * 100 + 2 * 150 });
+    expect(costOfUnits(ladder, 0)).toEqual({ units: 0, cost: 0 });
+  });
+  it("stops when the ladder runs out", () => {
+    expect(costOfUnits(ladder, 50)).toEqual({ units: 15, cost: 200 + 450 + 4000 });
+  });
+});
+
+describe("craft cost (ADR-0010)", () => {
+  const recipe = {
+    profession: "Alchemy",
+    makes: 1,
+    reagents: [
+      { id: 1, name: "Silversage", qty: 2 },
+      { id: 2, name: "Plaguebloom", qty: 2 },
+      { id: 3, name: "Crystal Vial", qty: 1 },
+    ],
+  };
+  const prices: Record<number, number> = { 1: 1200, 2: 4900, 3: 500 };
+  const priceOf = (id: number) => prices[id] ?? null;
+
+  it("sums reagents per crafted unit", () => {
+    expect(craftCost(recipe, priceOf)).toEqual({ cost: 12700, missing: [] });
+    expect(craftCost({ ...recipe, makes: 2 }, priceOf).cost).toBe(6350);
+  });
+
+  it("is null when a reagent isn't listed", () => {
+    expect(craftCost(recipe, (id) => (id === 2 ? null : priceOf(id)))).toEqual({
+      cost: null,
+      missing: ["Plaguebloom"],
+    });
+  });
+
+  const craftOpt = { belowCraftPct: 10, minUnitsListed: 20 };
+
+  it("flags a product selling well under its reagents", () => {
+    const r = belowCraft(8600, 932, 12700, craftOpt);
+    expect(r.craftChange).toBeCloseTo(-0.323, 3);
+    expect(r.belowCraft).toBe(true);
+  });
+
+  it("ignores small gaps, thin markets and missing prices", () => {
+    expect(belowCraft(9900, 300, 10000, craftOpt).belowCraft).toBe(false); // −1%
+    expect(belowCraft(5000, 5, 10000, craftOpt).belowCraft).toBe(false); // 5 units listed
+    expect(belowCraft(null, 0, 10000, craftOpt)).toEqual({ craftChange: null, belowCraft: false });
+    expect(belowCraft(5000, 100, null, craftOpt)).toEqual({ craftChange: null, belowCraft: false });
   });
 });

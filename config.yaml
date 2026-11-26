@@ -29,14 +29,20 @@ houses:
   - { id: 124, label: "Horde (set E)", faction: horde, set: E }
   - { id: 125, label: "Blackwater (set E)", faction: blackwater, set: E }
 
-# Watchlist items get hourly history (30 days). Every commodity gets daily history regardless.
-# Every ID below was verified against static-forever-eu on 2026-11-25 (pnpm resolve-items <ids>).
+# Watchlist items get hourly history (30 days). Every commodity gets daily history regardless (ADR-0004),
+# so dropping an item here loses nothing but its hourly points.
+# Scope (2026-11-26): level-60 raid consumables and the reagents that make them. Gear crafting mats
+# (Fel Crystal, Legionite Bar, Fel Hide, Arcanite) and reagents of nothing raid-related were dropped.
+# Every ID below was verified against static-forever-eu (pnpm resolve-items <ids>).
+# Not added because they've never been listed in Forever yet (2026-11-26): Juju Power/Might, R.O.I.D.S.,
+# Ground Scorpok Assay, Cerebral Cortex Compound, Brilliant Wizard/Mana Oil, Elemental Sharpening Stone.
 watchlist:
   flasks:
     13510: Flask of the Titans
     13511: Flask of Distilled Wisdom
     13512: Flask of Supreme Power
     13513: Flask of Chromatic Resistance
+    13506: Flask of Petrification
     274273: Flask of Natural Accuracy # new in Forever
     274274: Flask of Natural Aggression # new in Forever
     274275: Flask of Natural Precision # new in Forever
@@ -55,10 +61,14 @@ watchlist:
     3387: Limited Invulnerability Potion
     5634: Free Action Potion
     13455: Greater Stoneshield Potion
+    9036: Magic Resistance Potion
+    9088: Gift of Arthas
+    9224: Potion of Demon Slaying # Forever: +180 AP vs demons. Bet: Hyjal bosses may be demons (unconfirmed)
+    20520: Dark Rune # mana; own cooldown, separate from potions
+    12662: Demonic Rune
   elixirs:
     13452: Elixir of the Mongoose
     9206: Elixir of Greater Strength
-    9187: Elixir of Greater Agility
     13454: Greater Arcane Elixir
     9264: Elixir of Shadow Power
     17708: Elixir of Frost Power
@@ -94,9 +104,6 @@ watchlist:
     260816: EZ-Thro Thorium Grenade
     252488: Forceful Rugged Armor Kit
     252487: Mystic Rugged Armor Kit
-    248819: Fel Crystal
-    251290: Legionite Bar
-    248824: Fel Hide
   herbs:
     13468: Black Lotus
     8846: Gromsblood
@@ -111,30 +118,60 @@ watchlist:
     7070: Elemental Water
     7067: Elemental Earth
     7069: Elemental Air
-    7078: Essence of Fire
-    7076: Essence of Earth
-    7080: Essence of Water
-    7082: Essence of Air
-    12803: Living Essence
-    12808: Essence of Undeath
   other:
     8925: Crystal Vial
     13423: Stonescale Oil
-    13422: Stonescale Eel
-    12360: Arcanite Bar
-    12363: Arcane Crystal
     12359: Thorium Bar
-    20520: Dark Rune
-    12662: Demonic Rune
   food:
-    13928: Grilled Squid
+    13928: Grilled Squid # Forever: well fed = +1% crit
     13931: Nightfin Soup
     18254: Runn Tum Tuber Surprise
     21023: Dirge's Kickin' Chimaerok Chops
     20452: Smoked Desert Dumplings
+    18045: Tender Wolf Steak
+  utility:
+    12404: Dense Sharpening Stone
+    12643: Dense Weightstone
+    10646: Goblin Sapper Charge
+    18641: Dense Dynamite
+    15993: Thorium Grenade
+    14530: Heavy Runecloth Bandage
+
+# Raid kits for the "My kit" page. Quantities are per raid night (~3 h); the page lets you change them.
+# Every item must be on the watchlist (that's where its price comes from). A slot with several
+# options means "pick one"; the first is the default.
+kits:
+  hunter_mm:
+    label: Hunter · Marksmanship
+    slots:
+      - slot: Flask
+        perNight: 2 # 2 h each, persists through death
+        options: [274273, 274274]
+        note: Natural Accuracy while you're under the hit cap, otherwise Natural Aggression. Raid zones only.
+      - slot: Agility elixir
+        perNight: 6
+        options: [13452, 250328, 250350]
+        note: Mongoose (+25 Agi, +2% crit) beats Cunning and Ferocity. Whether they stack is untested.
+      - slot: Mana regen
+        perNight: 6
+        options: [250341]
+      - slot: Mana potion
+        perNight: 3
+        options: [13444]
+      - slot: Healing potion
+        perNight: 2
+        options: [13446]
+      - slot: Food
+        perNight: 6 # well fed lasts 15 min: eat before each boss
+        options: [13928]
+      - slot: Attack power potion
+        perNight: 0
+        options: [250943]
+        note: “+80 Attack Power”. Check in game that it raises ranged AP before buying.
 
 # Buy-list thresholds (ADR-0007). Sell-side thresholds (spike, squeeze) come with the stockpile phase.
 thresholds:
   belowMedianPct: 20 # "cheap" = current p10 at least 20% under the 7-day median
   minUnitsListed: 20 # ignore items with fewer units listed
   minNormalDays: 1 # don't call anything cheap on less than a day of history
+  belowCraftPct: 10 # "under craft cost" = market price at least 10% under its reagents' cost (ADR-0010)

@@ -13,10 +13,18 @@ import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import { aggregate } from "../shared/aggregate.ts";
 import { appendHourly, emptyDaily, emptyHourly, foldDaily, utcDate } from "../shared/series.ts";
-import { type BuyList, type BuyListItem, computeSignal, type Ladder, ladderOf } from "../shared/signals.ts";
+import {
+  type BuyList,
+  type BuyListItem,
+  belowCraft,
+  computeSignal,
+  craftCost,
+  type Ladder,
+  ladderOf,
+} from "../shared/signals.ts";
 import type { DailySeries, HourlySeries, ItemMeta, Latest, Listing, Meta, Stats } from "../shared/types.ts";
 import { Api } from "./api.ts";
-import { type Config, type HouseConfig, loadConfig, watchlistIds } from "./config.ts";
+import { type Config, type HouseConfig, kitList, loadConfig, watchlistIds } from "./config.ts";
 import { loadRecipes, raidInfo } from "./raid.ts";
 import { pool, readJson, writeJson } from "./store.ts";
 
@@ -79,6 +87,7 @@ async function main() {
     houses: cfg.houses,
     watchlist: cfg.watchlist,
     thresholds: cfg.thresholds,
+    kits: cfg.kits,
   });
 
   if (ok === 0) {
@@ -253,6 +262,16 @@ async function writeBuyList(
   for (const [group, ids] of Object.entries(cfg.watchlist))
     for (const id of Object.keys(ids ?? {})) groupOf.set(Number(id), group);
 
+  // Reagent prices come from latest.json (every item in the snapshot), so craft costs don't
+  // depend on every reagent being on the watchlist. An NPC-sold reagent costs at most its vendor price.
+  const latest = await readJson<Latest | null>(join(DATA_DIR, String(focus.house), "latest.json"), null);
+  const priceOf = (id: number): number | null => {
+    const ah = latest?.items[id]?.[1] ?? null; // p10
+    const npc = cfg.vendorPrices[id] ?? null;
+    if (ah === null) return npc;
+    return npc === null ? ah : Math.min(ah, npc);
+  };
+
   const list: BuyListItem[] = [];
   for (const id of watch) {
     const h = focus.hourly.get(id);
@@ -265,6 +284,9 @@ async function writeBuyList(
     });
     if (!signal) continue;
     const info = raid.get(id);
+    const recipe = info?.recipe ?? null;
+    const vendorPrice = cfg.vendorPrices[id] ?? null;
+    const cost = recipe && vendorPrice === null ? craftCost(recipe, priceOf).cost : null;
     list.push({
       ...signal,
       name: items[id]?.name ?? cfg.watchlist[groupOf.get(id) ?? ""]?.[id] ?? `Item ${id}`,
@@ -272,15 +294,17 @@ async function writeBuyList(
       group: groupOf.get(id) ?? "",
       raidProduct: info?.product ?? false,
       uses: info?.uses ?? [],
-      vendorPrice: cfg.vendorPrices[id] ?? null,
+      vendorPrice,
       ladder: ladder.slice(0, LADDER_ROWS),
-      recipe: info?.recipe ?? null,
+      recipe,
+      craftCost: cost,
+      ...belowCraft(signal.now, signal.qty, cost, {
+        belowCraftPct: cfg.thresholds.belowCraftPct,
+        minUnitsListed: cfg.thresholds.minUnitsListed,
+      }),
     });
   }
 
-  // Reagent prices come from latest.json (every item in the snapshot), so craft costs don't
-  // depend on every reagent being on the watchlist.
-  const latest = await readJson<Latest | null>(join(DATA_DIR, String(focus.house), "latest.json"), null);
   const reagentPrices: Record<string, number> = {};
   for (const x of list) {
     for (const r of x.recipe?.reagents ?? []) {
@@ -294,6 +318,8 @@ async function writeBuyList(
     t: focus.t,
     raidOpens: cfg.raidOpens,
     cheapPct: cfg.thresholds.belowMedianPct,
+    belowCraftPct: cfg.thresholds.belowCraftPct,
+    kits: kitList(cfg),
     items: list,
     reagentPrices,
   };
