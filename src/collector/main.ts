@@ -320,6 +320,10 @@ async function writeBuyList(
     cheapPct: cfg.thresholds.belowMedianPct,
     belowCraftPct: cfg.thresholds.belowCraftPct,
     kits: kitList(cfg),
+    sell: {
+      sellAboveCostPct: cfg.thresholds.sellAboveCostPct,
+      sellAboveNormalPct: cfg.thresholds.sellAboveNormalPct,
+    },
     items: list,
     reagentPrices,
   };

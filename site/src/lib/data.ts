@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import type { BuyList } from "../../../src/shared/signals.ts";
-import type { DailySeries, HourlySeries, Meta } from "../../../src/shared/types.ts";
+import type { DailySeries, HourlySeries, ItemMeta, Latest, Meta } from "../../../src/shared/types.ts";
 
 export const DATA_BASE: string =
   import.meta.env.VITE_DATA_BASE ?? "https://raw.githubusercontent.com/FrancoisCordier/forever-broke/data/data";
@@ -47,6 +47,10 @@ export function useJson<T>(path: string | null): Loadable<T> {
 }
 
 export const useBuyList = () => useJson<BuyList>(`${HOUSE}/buylist.json`);
+/** Every item in the focus house's current snapshot (~40 KB). */
+export const useLatest = () => useJson<Latest>(`${HOUSE}/latest.json`);
+/** Names of every commodity seen (~150 KB): loaded only by the stockpile page, for item search. */
+export const useItems = () => useJson<Record<string, ItemMeta>>("items.json");
 export const useMeta = () => useJson<Meta>("meta.json");
 export const useHourly = (id: number) => useJson<HourlySeries>(`${HOUSE}/hourly/${id}.json`);
 export const useDaily = (id: number) => useJson<DailySeries>(`${HOUSE}/daily/${id}.json`);

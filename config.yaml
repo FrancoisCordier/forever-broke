@@ -175,3 +175,6 @@ thresholds:
   minUnitsListed: 20 # ignore items with fewer units listed
   minNormalDays: 1 # don't call anything cheap on less than a day of history
   belowCraftPct: 10 # "under craft cost" = market price at least 10% under its reagents' cost (ADR-0010)
+  # Stockpile sell flag (ADR-0011): both must hold.
+  sellAboveCostPct: 30 # after the 5% AH cut, at least 30% above what you paid
+  sellAboveNormalPct: 15 # and the market at least 15% above its normal price (a spike, not a new normal)

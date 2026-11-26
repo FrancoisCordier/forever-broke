@@ -5,6 +5,7 @@ import { ToastProvider } from "./components/Toast.tsx";
 import { BuyListPage } from "./pages/BuyListPage.tsx";
 import { KitPage } from "./pages/KitPage.tsx";
 import { RaidPrepPage } from "./pages/RaidPrepPage.tsx";
+import { StockpilePage } from "./pages/StockpilePage.tsx";
 
 // The item page pulls in the charting library: load it only when opened.
 const ItemPage = lazy(() => import("./pages/ItemPage.tsx").then((m) => ({ default: m.ItemPage })));
@@ -19,6 +20,7 @@ export function App() {
             <Route path="/" element={<BuyListPage />} />
             <Route path="/raid" element={<RaidPrepPage />} />
             <Route path="/kit" element={<KitPage />} />
+            <Route path="/stockpile" element={<StockpilePage />} />
             <Route
               path="/item/:id"
               element={

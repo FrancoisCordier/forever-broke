@@ -14,6 +14,8 @@ export interface Thresholds {
   minUnitsListed: number;
   minNormalDays: number;
   belowCraftPct: number;
+  sellAboveCostPct: number;
+  sellAboveNormalPct: number;
 }
 
 /** config.yaml `kits`: kit id → label and slots. Converted to `Kit[]` for the buy list. */
@@ -34,7 +36,14 @@ export interface Config {
   kits: KitsConfig;
 }
 
-const DEFAULT_THRESHOLDS: Thresholds = { belowMedianPct: 20, minUnitsListed: 20, minNormalDays: 1, belowCraftPct: 10 };
+const DEFAULT_THRESHOLDS: Thresholds = {
+  belowMedianPct: 20,
+  minUnitsListed: 20,
+  minNormalDays: 1,
+  belowCraftPct: 10,
+  sellAboveCostPct: 30,
+  sellAboveNormalPct: 15,
+};
 
 export async function loadConfig(path = "config.yaml"): Promise<Config> {
   const cfg = parse(await readFile(path, "utf8")) as Config;

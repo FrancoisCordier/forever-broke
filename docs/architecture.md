@@ -1,6 +1,6 @@
 # Architecture
 
-Status: **Collector, buy-list signals and site implemented (phases 1–2, 2026-11-25).** Stockpile (phase 3) not yet built.
+Status: **Collector, buy-list signals and site implemented (phases 1–2, 2026-11-25). Stockpile with sell signal (phase 3, ADR-0011) 2026-11-26.**
 
 ```
 Cloudflare Worker cron (:29, :54) ── workflow_dispatch ──┐            (ADR-0009)
@@ -16,7 +16,7 @@ GitHub Actions `collect` workflow ◄──────────────�
 
 GitHub Pages (static, redeployed only when site code changes)
   └─ site (Vite + React + TS) ── fetches JSON live from the `data` branch   (ADR-0008)
-       └─ budget (later: stockpile) in localStorage
+       └─ budget, kit choices and stockpile lots in localStorage                (ADR-0011)
 
 Later, maybe: tools/update_addon.ts ── buylist.json ──► Data.lua ──► addon
 ```
@@ -70,7 +70,7 @@ Thresholds live in `config.yaml`.
 | Supply change    | quantity now vs mean over the previous 3 days (shown, not a signal by itself)               | Implemented |
 | Craft margin     | product × 0.95 − Σ reagents (site, Raid prep page)                                          | Implemented |
 | Under craft cost | market ≤ (1 − 10%) × reagent cost, ≥ 20 units listed; no history needed (ADR-0010)          | Implemented |
-| Spike / sell     | for the stockpile phase                                                                     | Not yet     |
+| Sell (stockpile) | net ≥ (1 + 30%) × unit cost **and** market ≥ (1 + 15%) × normal; resell/alt lots (ADR-0011) | Implemented |
 | Cross-faction    | dropped for now: owner trades on house 110 only                                             | Not planned |
 
 **Raid relevance** (`src/collector/raid.ts`): an item is a raid consumable if it's on the watchlist and its item

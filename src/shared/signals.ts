@@ -96,6 +96,8 @@ export interface BuyList {
   /** Optional only so the site still reads buy lists written before ADR-0010. */
   belowCraftPct?: number;
   kits?: Kit[];
+  /** Stockpile sell thresholds (ADR-0011). Optional: older buy lists lack them; the site falls back to 30 / 15. */
+  sell?: { sellAboveCostPct: number; sellAboveNormalPct: number };
   items: BuyListItem[];
   /** Current p10 of every reagent used by a watchlist recipe (item id → copper), for craft costs. */
   reagentPrices: Record<string, number>;
