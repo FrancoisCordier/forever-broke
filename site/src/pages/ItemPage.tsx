@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import type { BuyListItem } from "../../../src/shared/signals.ts";
-import type { DailySeries, HourlySeries } from "../../../src/shared/types.ts";
+import { type DailySeries, type HourlySeries, iconUrl } from "../../../src/shared/types.ts";
 import { CopyButton } from "../components/CopyButton.tsx";
 import { type Point, PriceChart } from "../components/PriceChart.tsx";
 import { Status } from "../components/Status.tsx";
@@ -81,7 +81,19 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
 
       <section className="page-head">
         <div className="stack-xs grow">
-          <h1 style={{ color: qualityColor(x.quality) }}>{x.name}</h1>
+          <h1 className="item-title" style={{ color: qualityColor(x.quality) }}>
+            {x.icon ? <img src={iconUrl(x.icon, 56)} alt="" width={40} height={40} /> : null}
+            {x.name}
+          </h1>
+          {x.tip?.length ? (
+            <div className="item-tip-inline">
+              {x.tip.map((line) => (
+                <p key={line} className={line.startsWith("Use:") ? "item-tip-use" : undefined}>
+                  {line}
+                </p>
+              ))}
+            </div>
+          ) : null}
           <div className="tags">
             {x.cheap ? <span className="tag tag-cheap">Cheap · {formatPct(x.change)} vs normal</span> : null}
             {raid ? <span className="tag tag-raid">{raid}</span> : null}

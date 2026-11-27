@@ -45,7 +45,7 @@ All prices are integer copper.
 data/
   meta.json                  # last run, per-house status/Last-Modified/errors, snapshots per day
   config.json                # copy of config.yaml for the site
-  items.json                 # id → {name, quality, cls, sub, level}
+  items.json                 # id → {name, quality, cls, sub, level, icon, tip?} (icon: A21; tip: watchlist only)
   {house}/latest.json        # one row per item: current values
   {house}/hourly/{item}.json # rolling 30 days
   {house}/daily/{item}.json  # daily rollup, kept forever
@@ -53,6 +53,7 @@ data/
   {focusHouse}/book.json     # previous snapshot's listings (id, qty, price, short), watchlist only (ADR-0012)
   {focusHouse}/sales/{item}.json # estimated sales per snapshot pair: t, dt, units, value; rolling 30 days
 ```
+
 Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an array of objects.
 
 - Hourly files: **watchlist items only**. When an item is absent from a snapshot, it gets a point with `qty 0` and `null` prices.

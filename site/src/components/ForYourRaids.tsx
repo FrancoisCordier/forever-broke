@@ -1,8 +1,9 @@
 import { Link } from "react-router";
 import { type BuyListItem, costOfUnits, type Kit } from "../../../src/shared/signals.ts";
-import { formatGold, formatWholeGold, qualityColor } from "../lib/format.ts";
+import { formatGold, formatWholeGold } from "../lib/format.ts";
 import { type GoodBuy, goodBuy, type KitPrefs, kitRows } from "../lib/kit.ts";
 import { CopyButton } from "./CopyButton.tsx";
+import { ItemName } from "./ItemName.tsx";
 
 interface Deal {
   key: string;
@@ -59,9 +60,7 @@ export function ForYourRaids({ kit, deals, nights }: { kit: Kit; deals: Deal[]; 
           {deals.map((d) => (
             <tr key={d.key}>
               <td>
-                <Link to={`/item/${d.x.id}`} className="item-link" style={{ color: qualityColor(d.x.quality) }}>
-                  {d.x.name}
-                </Link>
+                <ItemName item={d.x} />
                 <span className="note lot-date">{d.slot}</span>
               </td>
               <td>

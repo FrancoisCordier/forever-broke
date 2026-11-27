@@ -53,6 +53,10 @@ export interface Use {
 export interface BuyListItem extends ItemSignal {
   name: string;
   quality: string | null;
+  /** Icon file id (ItemMeta.icon), null when unknown. Optional: buy lists from before icons lack it. */
+  icon?: number | null;
+  /** Tooltip lines (ItemMeta.tip). */
+  tip?: string[];
   group: string;
   /** The item itself is a raid consumable. */
   raidProduct: boolean;

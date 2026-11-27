@@ -1,8 +1,8 @@
-import { Link } from "react-router";
 import type { BuyListItem } from "../../../src/shared/signals.ts";
 import { raidLabel } from "../lib/buylist.ts";
-import { formatGold, formatWholeGold, qualityColor } from "../lib/format.ts";
+import { formatGold, formatWholeGold } from "../lib/format.ts";
 import { CopyButton } from "./CopyButton.tsx";
+import { ItemName } from "./ItemName.tsx";
 
 const perDay = (n: number) => (n >= 10 ? Math.round(n).toLocaleString("en-GB") : n.toFixed(1));
 
@@ -18,9 +18,7 @@ export function ResellList({ items }: { items: BuyListItem[] }) {
           <article key={x.id} className="card buy-card">
             <div className="buy-card-head">
               <div className="buy-card-title">
-                <Link to={`/item/${x.id}`} className="item-name" style={{ color: qualityColor(x.quality) }}>
-                  {x.name}
-                </Link>
+                <ItemName item={x} className="item-name" />
                 <div className="tags">
                   <span className="tag tag-sell">≈ +{formatWholeGold(r.profit)} after the cut</span>
                   {raid ? <span className="tag tag-raid">{raid}</span> : null}

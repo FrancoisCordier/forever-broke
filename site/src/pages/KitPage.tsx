@@ -1,8 +1,8 @@
-import { Link } from "react-router";
 import { CopyButton } from "../components/CopyButton.tsx";
+import { ItemName } from "../components/ItemName.tsx";
 import { Status } from "../components/Status.tsx";
 import { useBuyList } from "../lib/data.ts";
-import { formatGold, formatWholeGold, qualityColor } from "../lib/format.ts";
+import { formatGold, formatWholeGold } from "../lib/format.ts";
 import { goodBuy, type KitPrefs, kitRows, pickKit, useKitPrefs } from "../lib/kit.ts";
 
 export function KitPage() {
@@ -123,13 +123,7 @@ export function KitPage() {
                     </select>
                   ) : null}
                   {r.item ? (
-                    <Link
-                      to={`/item/${r.item.id}`}
-                      className="item-link"
-                      style={{ color: qualityColor(r.item.quality), display: "block" }}
-                    >
-                      {r.options.length > 1 ? "Details" : r.item.name}
-                    </Link>
+                    <ItemName item={r.item} label={r.options.length > 1 ? "Details" : undefined} block />
                   ) : (
                     <span className="muted">not on the watchlist</span>
                   )}

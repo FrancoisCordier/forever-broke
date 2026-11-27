@@ -70,6 +70,17 @@ export class Api {
     if (!res.ok) throw new Error(`item ${id}: HTTP ${res.status}`);
     return (await res.json()) as Record<string, unknown>;
   }
+
+  /** Icon file id from the item media endpoint (A21), or 0 when there's none (404 or no icon asset). */
+  async itemIcon(id: number): Promise<number> {
+    const res = await withRetry(() =>
+      fetch(this.url(`/data/wow/media/item/${id}`, "static"), { headers: { Authorization: `Bearer ${this.token}` } }),
+    );
+    if (res.status === 404) return 0;
+    if (!res.ok) throw new Error(`item media ${id}: HTTP ${res.status}`);
+    const body = (await res.json()) as { assets?: { key?: string; file_data_id?: number }[] };
+    return body.assets?.find((a) => a.key === "icon")?.file_data_id ?? 0;
+  }
 }
 
 /** Retry once on network error, 429 or 5xx. */

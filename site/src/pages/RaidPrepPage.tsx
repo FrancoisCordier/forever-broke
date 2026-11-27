@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import { AH_CUT, type BuyListItem, craftCost } from "../../../src/shared/signals.ts";
 import { ItemFilters } from "../components/ItemFilters.tsx";
+import { ItemName } from "../components/ItemName.tsx";
 import { ItemTable } from "../components/ItemTable.tsx";
 import { SortHeader } from "../components/SortHeader.tsx";
 import { Status } from "../components/Status.tsx";
 import { applyFilter, GROUPS, isVendor, NO_FILTER } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
-import { formatGold, formatPct, qualityColor } from "../lib/format.ts";
+import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
 
 interface Craft {
@@ -72,9 +72,7 @@ function CraftTable({ rows }: { rows: Craft[] }) {
           {sorted.map(({ x, cost, margin, missing }) => (
             <tr key={x.id}>
               <td>
-                <Link to={`/item/${x.id}`} className="item-link" style={{ color: qualityColor(x.quality) }}>
-                  {x.name}
-                </Link>
+                <ItemName item={x} />
               </td>
               {cost !== null ? (
                 <td className="gold">{formatGold(cost)}</td>

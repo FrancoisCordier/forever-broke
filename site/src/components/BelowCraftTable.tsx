@@ -1,8 +1,8 @@
-import { Link } from "react-router";
 import type { BuyListItem } from "../../../src/shared/signals.ts";
-import { formatGold, formatPct, qualityColor } from "../lib/format.ts";
+import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
 import { CopyButton } from "./CopyButton.tsx";
+import { ItemName } from "./ItemName.tsx";
 import { SortHeader } from "./SortHeader.tsx";
 
 type Col = "name" | "now" | "cost" | "craftChange" | "qty";
@@ -40,9 +40,7 @@ export function BelowCraftTable({ items }: { items: BuyListItem[] }) {
           {rows.map((x) => (
             <tr key={x.id}>
               <td>
-                <Link to={`/item/${x.id}`} className="item-link" style={{ color: qualityColor(x.quality) }}>
-                  {x.name}
-                </Link>
+                <ItemName item={x} />
               </td>
               <td className="gold">{x.now === null ? "—" : formatGold(x.now)}</td>
               <td className="soft">{x.craftCost === null ? "—" : formatGold(x.craftCost)}</td>

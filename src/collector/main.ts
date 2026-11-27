@@ -36,6 +36,7 @@ import {
 import type { DailySeries, HourlySeries, ItemMeta, Latest, Listing, Meta, Stats } from "../shared/types.ts";
 import { Api } from "./api.ts";
 import { type Config, type HouseConfig, kitList, loadConfig, watchlistIds } from "./config.ts";
+import { type ItemResponse, itemMeta, needsMeta } from "./itemMeta.ts";
 import { loadRecipes, raidInfo } from "./raid.ts";
 import { pool, readJson, writeJson } from "./store.ts";
 
@@ -83,7 +84,7 @@ async function main() {
   }
 
   // Watchlist items too: some (e.g. the new Forever flasks) may not be listed anywhere yet.
-  const items = await updateItemMeta(api, new Set([...seenItems, ...watch]));
+  const items = await updateItemMeta(api, new Set([...seenItems, ...watch]), watch);
   // Unchanged snapshot: rebuild from stored files anyway, so config and recipe changes apply right away.
   focus ??= await focusFromDisk(cfg.focusHouse, meta, watch);
   if (focus) {
@@ -246,31 +247,24 @@ async function collectHouse(
   return `updated: ${listings.length} listings, ${stats.size} items, snapshot ${new Date(t * 1000).toISOString()}`;
 }
 
-/** Fetch metadata for items we have never seen. 404s are cached as {name:null} so they aren't retried every hour. */
-async function updateItemMeta(api: Api, seen: Set<number>): Promise<Record<string, ItemMeta>> {
+/**
+ * Fetch metadata (name, icon, and tooltip lines for watchlist items) for items that lack it (`needsMeta`).
+ * 404s are cached as {name:null} so they aren't retried every hour.
+ */
+async function updateItemMeta(api: Api, seen: Set<number>, watch: Set<number>): Promise<Record<string, ItemMeta>> {
   const path = join(DATA_DIR, "items.json");
   const items = await readJson<Record<string, ItemMeta>>(path, {});
-  const missing = [...seen].filter((id) => !(id in items)).slice(0, MAX_NEW_ITEMS_PER_RUN);
+  // Watchlist first, so a capped run still covers what the site shows most.
+  const missing = [...seen]
+    .filter((id) => needsMeta(items[id], watch.has(id)))
+    .sort((a, b) => Number(watch.has(b)) - Number(watch.has(a)))
+    .slice(0, MAX_NEW_ITEMS_PER_RUN);
   if (missing.length === 0) return items;
   let failed = 0;
   await pool(missing, 5, async (id) => {
     try {
-      const d = (await api.item(id)) as {
-        name?: string;
-        level?: number;
-        quality?: { type?: string };
-        item_class?: { name?: string };
-        item_subclass?: { name?: string };
-      } | null;
-      items[id] = d
-        ? {
-            name: d.name ?? null,
-            quality: d.quality?.type,
-            cls: d.item_class?.name,
-            sub: d.item_subclass?.name,
-            level: d.level,
-          }
-        : { name: null };
+      const d = (await api.item(id)) as ItemResponse | null;
+      items[id] = d ? itemMeta(d, await api.itemIcon(id), watch.has(id)) : { name: null };
     } catch {
       failed++; // retried next run
     }
@@ -353,6 +347,8 @@ async function writeBuyList(
       ...signal,
       name: items[id]?.name ?? cfg.watchlist[groupOf.get(id) ?? ""]?.[id] ?? `Item ${id}`,
       quality: items[id]?.quality ?? null,
+      icon: items[id]?.icon || null,
+      tip: items[id]?.tip ?? [],
       group: groupOf.get(id) ?? "",
       raidProduct: info?.product ?? false,
       uses: info?.uses ?? [],
