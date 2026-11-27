@@ -11,6 +11,32 @@ import { useToast } from "../components/Toast.tsx";
 import { useBuyList, useItems, useLatest } from "../lib/data.ts";
 import { formatGold, formatPct, formatWholeGold, qualityColor } from "../lib/format.ts";
 import { backupOf, newLotId, PURPOSE_LABEL, parseLots, useLots, useMarkets } from "../lib/stockpile.ts";
+import {
+  btn,
+  card,
+  cellInput,
+  cheap,
+  field,
+  gold,
+  headControls,
+  label,
+  lead,
+  loss,
+  numberInput,
+  pageFoot,
+  pageHead,
+  sectionHead,
+  select,
+  small,
+  subline,
+  type TagKind,
+  table,
+  tableWrap,
+  tag,
+  textInput,
+} from "../lib/ui.ts";
+
+const SECTION = "flex flex-col gap-3.5";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const NO_ITEMS: BuyListItem[] = [];
@@ -62,12 +88,14 @@ function AddLot({
   };
 
   return (
-    <form className="card add-lot" onSubmit={submit}>
-      <div className="field grow">
-        <label htmlFor="lot-item">Item</label>
+    <form className={`${card} flex flex-wrap items-end gap-x-4 gap-y-3`} onSubmit={submit}>
+      <div className={`${field} flex-[1_1_260px]`}>
+        <label htmlFor="lot-item" className={label}>
+          Item
+        </label>
         <input
           id="lot-item"
-          className="input-wide"
+          className={`${textInput} w-full`}
           list="lot-items"
           value={item}
           onChange={(e) => setItem(e.target.value)}
@@ -80,17 +108,41 @@ function AddLot({
           ))}
         </datalist>
       </div>
-      <div className="field">
-        <label htmlFor="lot-qty">Quantity</label>
-        <input id="lot-qty" type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} />
+      <div className={field}>
+        <label htmlFor="lot-qty" className={label}>
+          Quantity
+        </label>
+        <input
+          id="lot-qty"
+          className={numberInput}
+          type="number"
+          min="1"
+          value={qty}
+          onChange={(e) => setQty(e.target.value)}
+        />
       </div>
-      <div className="field">
-        <label htmlFor="lot-price">Paid per unit</label>
-        <input id="lot-price" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="11g 55s" />
+      <div className={field}>
+        <label htmlFor="lot-price" className={label}>
+          Paid per unit
+        </label>
+        <input
+          id="lot-price"
+          className={numberInput}
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          placeholder="11g 55s"
+        />
       </div>
-      <div className="field">
-        <label htmlFor="lot-purpose">Why</label>
-        <select id="lot-purpose" value={purpose} onChange={(e) => setPurpose(e.target.value as Purpose)}>
+      <div className={field}>
+        <label htmlFor="lot-purpose" className={label}>
+          Why
+        </label>
+        <select
+          id="lot-purpose"
+          className={select}
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value as Purpose)}
+        >
           {(Object.keys(PURPOSE_LABEL) as Purpose[]).map((p) => (
             <option key={p} value={p}>
               {PURPOSE_LABEL[p]}
@@ -98,11 +150,11 @@ function AddLot({
           ))}
         </select>
       </div>
-      <button type="submit" className="btn btn-primary add-lot-btn">
+      <button type="submit" className={btn("primary")}>
         Add lot
       </button>
       {error ? (
-        <p className="form-error" role="alert">
+        <p className={`${small} basis-full text-loss`} role="alert">
           {error}
         </p>
       ) : null}
@@ -110,12 +162,12 @@ function AddLot({
   );
 }
 
-function statusOf(r: Row, normalPct: number): { label: string; cls: string } {
-  if (r.v.value === null) return { label: "Not listed", cls: "tag" };
-  if (r.lot.purpose === "own") return { label: "Keep", cls: "tag" };
-  if (r.v.sell) return { label: "Sell", cls: "tag tag-sell" };
-  if ((r.m?.now ?? 0) >= r.v.sellAt) return { label: `At target, not ${normalPct}% over normal`, cls: "tag tag-raid" };
-  return { label: "Hold", cls: "tag" };
+function statusOf(r: Row, normalPct: number): { label: string; kind: TagKind } {
+  if (r.v.value === null) return { label: "Not listed", kind: "plain" };
+  if (r.lot.purpose === "own") return { label: "Keep", kind: "plain" };
+  if (r.v.sell) return { label: "Sell", kind: "sell" };
+  if ((r.m?.now ?? 0) >= r.v.sellAt) return { label: `At target, not ${normalPct}% over normal`, kind: "raid" };
+  return { label: "Hold", kind: "plain" };
 }
 
 function LotTable({
@@ -130,8 +182,8 @@ function LotTable({
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="table-scroll">
-      <table className="table">
+    <div className={tableWrap}>
+      <table className={table}>
         <thead>
           <tr>
             <th scope="col">Item</th>
@@ -152,14 +204,14 @@ function LotTable({
           {rows.map((r) => {
             const s = statusOf(r, normalPct);
             return (
-              <tr key={r.lot.id} className={r.v.sell ? "within" : undefined}>
+              <tr key={r.lot.id} className={r.v.sell ? "bg-within" : undefined}>
                 <td>
                   <ItemName item={{ id: r.lot.item, name: r.name, quality: r.quality, icon: r.icon, tip: r.tip }} />
-                  <span className="note lot-date">bought {r.lot.added}</span>
+                  <span className={subline}>bought {r.lot.added}</span>
                 </td>
                 <td>
                   <input
-                    className="qty-input"
+                    className={cellInput}
                     type="number"
                     min="0"
                     aria-label={`${r.name}: quantity left`}
@@ -167,24 +219,26 @@ function LotTable({
                     onChange={(e) => onQty(r.lot.id, Math.max(0, Math.floor(Number(e.target.value) || 0)))}
                   />
                 </td>
-                <td className="soft">{formatGold(r.lot.unitCost)}</td>
-                <td className={r.m?.now == null ? "muted" : "gold"}>
+                <td className="text-soft">{formatGold(r.lot.unitCost)}</td>
+                <td className={r.m?.now == null ? "text-muted" : gold}>
                   {r.m?.now == null ? "not listed" : formatGold(r.m.now)}
                 </td>
-                <td className="soft">{r.m?.normal == null ? "—" : formatGold(r.m.normal)}</td>
-                <td className="soft">{r.lot.purpose === "own" ? "—" : formatGold(r.v.sellAt)}</td>
-                <td className="gold">{r.v.value === null ? "—" : formatWholeGold(r.v.value)}</td>
-                <td className={r.v.pl === null ? "muted" : r.v.pl >= 0 ? "cheap" : "loss"}>
+                <td className="text-soft">{r.m?.normal == null ? "—" : formatGold(r.m.normal)}</td>
+                <td className="text-soft">{r.lot.purpose === "own" ? "—" : formatGold(r.v.sellAt)}</td>
+                <td className={gold}>{r.v.value === null ? "—" : formatWholeGold(r.v.value)}</td>
+                <td className={r.v.pl === null ? "text-muted" : r.v.pl >= 0 ? cheap : loss}>
                   {r.v.pl === null ? "—" : `${r.v.pl >= 0 ? "+" : "−"}${formatWholeGold(Math.abs(r.v.pl))}`}
-                  {r.v.plPct === null ? null : <span className="note"> {formatPct(r.v.plPct)}</span>}
+                  {r.v.plPct === null ? null : (
+                    <span className="text-[13.5px] font-normal text-muted"> {formatPct(r.v.plPct)}</span>
+                  )}
                 </td>
                 <td>
-                  <span className={s.cls}>{s.label}</span>
+                  <span className={tag[s.kind]}>{s.label}</span>
                 </td>
                 <td>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-small"
+                    className={btn("ghost", true)}
                     aria-label={`Delete lot: ${r.lot.qty} ${r.name}`}
                     onClick={() => window.confirm(`Delete the lot of ${r.lot.qty} ${r.name}?`) && onDelete(r.lot.id)}
                   >
@@ -204,17 +258,23 @@ function Restore({ onRestore }: { onRestore: (lots: Lot[]) => void }) {
   const [text, setText] = useState("");
   const toast = useToast();
   return (
-    <details className="restore">
-      <summary>Restore from a backup</summary>
-      <div className="stack-xs">
-        <label htmlFor="restore-text" className="muted small">
+    <details>
+      <summary className="cursor-pointer py-2 text-soft">Restore from a backup</summary>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="restore-text" className={`${small} text-muted`}>
           Paste what “Copy backup” copied on another device. It replaces the lots in this browser.
         </label>
-        <textarea id="restore-text" rows={4} value={text} onChange={(e) => setText(e.target.value)} />
+        <textarea
+          id="restore-text"
+          className="w-full max-w-160 rounded-ctl border border-line-strong bg-bar px-3 py-2.5 font-mono text-[13px] text-fg"
+          rows={4}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
         <div>
           <button
             type="button"
-            className="btn btn-secondary btn-small"
+            className={btn("secondary", true)}
             onClick={() => {
               const lots = parseLots(text);
               if (!lots) return toast("That isn't a stockpile backup");
@@ -294,18 +354,18 @@ export function StockpilePage() {
   const ready = items.state === "ok" && latest.state === "ok";
 
   return (
-    <div className="stack-xl">
-      <section className="page-head">
-        <div className="stack-xs grow">
+    <div className="flex flex-col gap-10">
+      <section className={pageHead}>
+        <div className="flex flex-[1_1_420px] flex-col gap-1.5">
           <h1>Stockpile</h1>
-          <p className="muted lead">
+          <p className={lead}>
             {lots.length === 0 ? (
               "Record what you buy to see what it's worth and when to sell."
             ) : (
               <>
-                Paid <strong className="text">{formatWholeGold(cost)}</strong> · worth{" "}
-                <strong className="gold">{formatWholeGold(value)}</strong> after the 5% AH cut ·{" "}
-                <strong className={pl >= 0 ? "cheap" : "loss"}>
+                Paid <strong className="text-fg">{formatWholeGold(cost)}</strong> · worth{" "}
+                <strong className={gold}>{formatWholeGold(value)}</strong> after the 5% AH cut ·{" "}
+                <strong className={pl >= 0 ? cheap : loss}>
                   {pl >= 0 ? "+" : "−"}
                   {formatWholeGold(Math.abs(pl))}
                 </strong>
@@ -315,7 +375,7 @@ export function StockpilePage() {
           </p>
         </div>
         {lots.length > 0 ? (
-          <div className="head-controls">
+          <div className={headControls}>
             <CopyButton
               text={backupOf(lots)}
               label="Copy backup"
@@ -327,22 +387,25 @@ export function StockpilePage() {
       </section>
 
       {sell.length > 0 ? (
-        <section aria-labelledby="sell-now" className="stack-md">
-          <div className="section-head">
+        <section aria-labelledby="sell-now" className={SECTION}>
+          <div className={sectionHead}>
             <h2 id="sell-now">Sell now</h2>
-            <span className="muted">
+            <span className="text-muted">
               At least {opt.sellAboveCostPct}% over what you paid after the AH cut, and {opt.sellAboveNormalPct}% over
               its normal price
             </span>
           </div>
-          <div className="sell-list">
+          <div className="flex flex-col gap-2.5">
             {sell.map((r) => (
-              <div key={r.lot.id} className="card sell-card">
-                <div className="stack-xs grow">
+              <div
+                key={r.lot.id}
+                className="flex flex-wrap items-center gap-3 rounded-card border border-mint/35 bg-surface p-[18px]"
+              >
+                <div className="flex flex-[1_1_420px] flex-col gap-1.5">
                   <strong style={{ color: qualityColor(r.quality) }}>
                     {r.lot.qty} × {r.name}
                   </strong>
-                  <span className="muted small">
+                  <span className={`${small} text-muted`}>
                     {formatGold(r.m?.now ?? 0)} now ({formatPct(r.m?.normal ? (r.m.now ?? 0) / r.m.normal - 1 : null)}{" "}
                     vs normal) · paid {formatGold(r.lot.unitCost)} · lowest listing {formatGold(r.m?.min ?? 0)} ·{" "}
                     {formatWholeGold(r.v.value ?? 0)} after the cut
@@ -363,7 +426,7 @@ export function StockpilePage() {
         </section>
       ) : null}
 
-      <section aria-labelledby="add" className="stack-md">
+      <section aria-labelledby="add" className={SECTION}>
         <h2 id="add">Add a lot</h2>
         {ready ? (
           <AddLot
@@ -374,7 +437,7 @@ export function StockpilePage() {
             onAdd={(lot) => setLots([...lots, lot])}
           />
         ) : (
-          <p className="muted">Loading item names…</p>
+          <p className="text-muted">Loading item names…</p>
         )}
       </section>
 
@@ -382,10 +445,10 @@ export function StockpilePage() {
         const group = rows.filter((r) => r.lot.purpose === p);
         if (group.length === 0) return null;
         return (
-          <section key={p} aria-labelledby={`p-${p}`} className="stack-md">
-            <div className="section-head">
+          <section key={p} aria-labelledby={`p-${p}`} className={SECTION}>
+            <div className={sectionHead}>
               <h2 id={`p-${p}`}>{PURPOSE_LABEL[p]}</h2>
-              <span className="muted">
+              <span className="text-muted">
                 {p === "own"
                   ? "Never flagged for sale: shown so you know what your stock is worth."
                   : `Flagged “Sell” at ${opt.sellAboveCostPct}% over cost (after the cut) and ${opt.sellAboveNormalPct}% over normal.`}
@@ -403,7 +466,7 @@ export function StockpilePage() {
 
       <Restore onRestore={setLots} />
 
-      <footer className="page-foot muted">
+      <footer className={pageFoot}>
         <span>
           Lots are saved in this browser only. Use <strong>Copy backup</strong> and <strong>Restore</strong> to move
           them to another device. Sold part of a lot? Lower its quantity.

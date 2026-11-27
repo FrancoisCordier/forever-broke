@@ -52,7 +52,7 @@ export function PriceChart({ points, normal, upTo, raidT, until }: Props) {
   };
 
   return (
-    <div className="chart">
+    <div className="w-full">
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={points} margin={{ top: 16, right: 16, bottom: 0, left: 8 }}>
           <CartesianGrid stroke="#232833" vertical={false} />

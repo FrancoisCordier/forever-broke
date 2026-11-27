@@ -1,6 +1,7 @@
 import type { BuyListItem } from "../../../src/shared/signals.ts";
 import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
+import { cheap, gold, note, table, tableWrap } from "../lib/ui.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import { ItemName } from "./ItemName.tsx";
 import { SortHeader } from "./SortHeader.tsx";
@@ -21,8 +22,8 @@ export function BelowCraftTable({ items }: { items: BuyListItem[] }) {
   const rows = sortRows(items, VALUE[sort.key], sort.dir);
 
   return (
-    <div className="table-scroll">
-      <table className="table">
+    <div className={tableWrap}>
+      <table className={table}>
         <thead>
           <tr>
             <SortHeader label="Item" col="name" sort={sort} onSort={toggle} />
@@ -42,11 +43,11 @@ export function BelowCraftTable({ items }: { items: BuyListItem[] }) {
               <td>
                 <ItemName item={x} />
               </td>
-              <td className="gold">{x.now === null ? "—" : formatGold(x.now)}</td>
-              <td className="soft">{x.craftCost === null ? "—" : formatGold(x.craftCost)}</td>
-              <td className="cheap">{formatPct(x.craftChange)}</td>
-              <td className="soft">{x.qty.toLocaleString("en-GB")}</td>
-              <td className="note recipe">{x.recipe?.reagents.map((r) => `${r.qty} ${r.name}`).join(", ")}</td>
+              <td className={gold}>{x.now === null ? "—" : formatGold(x.now)}</td>
+              <td className="text-soft">{x.craftCost === null ? "—" : formatGold(x.craftCost)}</td>
+              <td className={cheap}>{formatPct(x.craftChange)}</td>
+              <td className="text-soft">{x.qty.toLocaleString("en-GB")}</td>
+              <td className={`${note} min-w-70`}>{x.recipe?.reagents.map((r) => `${r.qty} ${r.name}`).join(", ")}</td>
               <td>
                 <CopyButton
                   text={x.name}

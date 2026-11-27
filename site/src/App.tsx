@@ -24,7 +24,7 @@ export function App() {
             <Route
               path="/item/:id"
               element={
-                <Suspense fallback={<p className="muted">Loading…</p>}>
+                <Suspense fallback={<p className="text-muted">Loading…</p>}>
                   <ItemPage />
                 </Suspense>
               }

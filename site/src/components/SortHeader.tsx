@@ -11,10 +11,14 @@ interface Props<K extends string> {
 export function SortHeader<K extends string>({ label, col, sort, onSort }: Props<K>) {
   const active = sort.key === col;
   return (
-    <th scope="col" aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
-      <button type="button" className="sort-btn" onClick={() => onSort(col)}>
+    <th
+      scope="col"
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      className="aria-[sort=ascending]:text-fg aria-[sort=descending]:text-fg"
+    >
+      <button type="button" className="inline-flex cursor-pointer items-center gap-1 py-1" onClick={() => onSort(col)}>
         {label}
-        <span className="sort-arrow" aria-hidden="true">
+        <span className="text-[10px] text-muted" aria-hidden="true">
           {active ? (sort.dir === "asc" ? "▲" : "▼") : "↕"}
         </span>
       </button>
