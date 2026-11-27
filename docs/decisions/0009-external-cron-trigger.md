@@ -1,6 +1,6 @@
 # ADR-0009: Cloudflare Worker cron starts the collector
 
-Status: **Accepted** (2026-11-26)
+Status: **Accepted** (2026-11-26). Amended 2026-11-27: no GitHub `schedule` backup.
 
 ## Context
 
@@ -20,8 +20,10 @@ or a Cloudflare Worker with a Cron Trigger (code in the repo).
   `POST /repos/FrancoisCordier/forever-broke/actions/workflows/collect.yml/dispatches` on `main`.
 - Auth: a **fine-grained PAT** scoped to this repo only, permission _Actions: Read and write_, stored as the
   Worker secret `GITHUB_TOKEN`.
-- `collect.yml` keeps its `schedule` as a **backup**. Duplicate runs are harmless: the `collect` concurrency
-  group runs them one at a time, and an unchanged snapshot is a 304 that writes nothing.
+- ~~`collect.yml` keeps its `schedule` as a **backup**.~~ **Amended 2026-11-27 (owner):** the `schedule` is
+  removed. The Worker has fired reliably, and the duplicate runs only spent free Actions minutes the owner
+  needs for other projects. `workflow_dispatch` is the only trigger; if the Worker stops, the data goes stale
+  (the site's "Data … ago" chip shows it) until it's fixed or `pnpm collect:remote` is run by hand.
 - `worker/` is a **pnpm workspace** package (`pnpm-workspace.yaml` at the root): one lockfile, one pnpm pin,
   `pnpm -r update` updates everything. CI installs only the root package (`--filter forever-broke`), so
   `wrangler` and the workerd runtime aren't downloaded on every hourly run.
@@ -30,7 +32,7 @@ or a Cloudflare Worker with a Cron Trigger (code in the repo).
 ## Consequences
 
 - One more account to own (Cloudflare) and one manual deploy (`worker/README.md`). Changing the cron times
-  means editing `worker/wrangler.jsonc` and redeploying, in addition to `collect.yml`.
+  means editing `worker/wrangler.jsonc` and redeploying.
 - If the PAT expires or is revoked, dispatches fail with 401: visible in the Worker's logs
   (`pnpm worker:logs`), and the site's "Data … ago" chip goes stale. Make a new token, then rerun
   `pnpm worker:secret`. A non-expiring token is acceptable: it can only touch this repo's Actions.

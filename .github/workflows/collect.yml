@@ -1,13 +1,9 @@
 name: collect
 
 on:
-  # Main trigger: the Cloudflare Worker in worker/ calls workflow_dispatch at :29/:54 (ADR-0009).
-  # GitHub's schedule drops most runs, so it's only a backup here.
-  schedule:
-    # API snapshots refresh at ~:22 (A12). :29 catches it (GitHub often adds 5–15 min of delay); :54 is a safety net.
-    # Unchanged snapshots are skipped via If-Modified-Since (304), so the extra run is nearly free.
-    - cron: "29 * * * *"
-    - cron: "54 * * * *"
+  # The only trigger: the Cloudflare Worker in worker/ calls workflow_dispatch at :29/:54 (ADR-0009).
+  # API snapshots refresh at ~:22 (A12): :29 catches it, :54 is a safety net (an unchanged snapshot is a 304).
+  # No GitHub schedule: its duplicate runs only spent free Actions minutes (owner, 2026-11-27).
   workflow_dispatch:
 
 permissions:
