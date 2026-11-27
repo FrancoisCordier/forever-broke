@@ -7,7 +7,7 @@
   "compatibility_date": "2026-11-23",
   "workers_dev": false,
   "triggers": {
-    // UTC. API snapshots refresh at ~:22; same slots as the GitHub `schedule` backup in collect.yml.
+    // UTC. API snapshots refresh at ~:22: :29 catches it, :54 is a safety net. The only trigger of collect.yml.
     "crons": ["29 * * * *", "54 * * * *"]
   },
   "observability": { "enabled": true }

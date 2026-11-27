@@ -37,5 +37,5 @@ while CI installs only the root package. All commands below run **from the repo 
 ## Updating
 
 - Packages: `pnpm -r update` at the root updates the root and the Worker together, then `pnpm worker:deploy`.
-- Schedule: edit `crons` in `wrangler.jsonc` and `pnpm worker:deploy`. Keep `.github/workflows/collect.yml`'s
-  backup `schedule` in step.
+- Schedule: edit `crons` in `wrangler.jsonc` and `pnpm worker:deploy`. The Worker is the only trigger: there's no
+  GitHub `schedule` backup in `collect.yml` (ADR-0009, amended 2026-11-27).
