@@ -22,6 +22,9 @@ export const atVendorPrice = (x: BuyListItem) =>
  */
 export const isVendor = (x: BuyListItem) => x.vendorPrice !== null;
 
+/** Group of the buy list items that aren't on the watchlist: the most traded commodities (ADR-0014 step 5). */
+export const MARKET_GROUP = "market";
+
 export interface ItemFilter {
   /** Case-insensitive substring of the item name. */
   query: string;

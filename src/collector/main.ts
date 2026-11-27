@@ -13,11 +13,20 @@ import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import { aggregate } from "../shared/aggregate.ts";
 import {
+  addTurnover,
+  emptyTurnover,
+  type MarketSet,
+  pickMarket,
+  type Turnover,
+  tradedValue,
+} from "../shared/market.ts";
+import {
   appendSales,
   type Book,
   bookRows,
   emptySales,
   estimateSales,
+  type SaleEstimate,
   type SalesSeries,
   summarizeSales,
 } from "../shared/sales.ts";
@@ -60,8 +69,13 @@ async function main() {
   const seenItems = new Set<number>();
   let ok = 0;
   let focus: FocusSnapshot | undefined;
-  const onFocus = (f: FocusSnapshot) => {
-    focus = f;
+  const scan: MarketScan = {
+    n: cfg.thresholds.marketItems,
+    // Vendor items can't be resold above the vendor price, so they aren't worth tracking.
+    exclude: new Set([...watch, ...Object.keys(cfg.vendorPrices).map(Number), ...cfg.soulbound]),
+    onFocus: (f) => {
+      focus = f;
+    },
   };
 
   for (const house of cfg.houses) {
@@ -72,7 +86,7 @@ async function main() {
         meta,
         watch,
         seenItems,
-        house.id === cfg.focusHouse ? onFocus : undefined,
+        house.id === cfg.focusHouse ? scan : undefined,
       );
       log(`house ${house.id} (${house.label}): ${result}`);
       if (meta.houses[house.id].status !== "rejected") ok++;
@@ -83,13 +97,14 @@ async function main() {
     }
   }
 
-  // Watchlist items too: some (e.g. the new Forever flasks) may not be listed anywhere yet.
-  const items = await updateItemMeta(api, new Set([...seenItems, ...watch]), watch);
   // Unchanged snapshot: rebuild from stored files anyway, so config and recipe changes apply right away.
   focus ??= await focusFromDisk(cfg.focusHouse, meta, watch);
+  const tracked = new Set([...watch, ...(focus?.market ?? [])]);
+  // Watchlist items too: some (e.g. the new Forever flasks) may not be listed anywhere yet.
+  const items = await updateItemMeta(api, new Set([...seenItems, ...watch]), tracked);
   if (focus) {
     const n = await writeBuyList(cfg, focus, items, watch);
-    log(`buy list for house ${focus.house}: ${n} cheap items`);
+    log(`buy list for house ${focus.house}: ${tracked.size} items (${focus.market.length} market), ${n} cheap`);
   }
 
   meta.lastRun = now();
@@ -115,42 +130,71 @@ interface FocusSnapshot {
   hourly: Map<number, HourlySeries>;
   ladders: Map<number, Ladder>;
   sales: Map<number, SalesSeries>;
+  /** Commodities tracked on top of the watchlist (ADR-0014 step 5), most traded first. */
+  market: number[];
+}
+
+/** The focus house's extra work: scan the whole market, then hand the snapshot to the buy list. */
+interface MarketScan {
+  /** How many commodities to track on top of the watchlist. */
+  n: number;
+  /** Never picked: already tracked (watchlist), sold by a vendor, or soulbound. */
+  exclude: Set<number>;
+  onFocus: (f: FocusSnapshot) => void;
 }
 
 /** Longest gap between two snapshots that still counts for sales: longer gaps hide too much (expiries, reposts). */
 const MAX_SALES_GAP_S = 3 * 3600;
 
 /**
- * Sales between the previous snapshot (book.json) and this one, per watchlist item (ADR-0012).
- * Appends to {house}/sales/{item}.json and replaces book.json with this snapshot's listings.
+ * Sales between the previous snapshot (book.json) and this one (ADR-0012), for every commodity on the house.
+ * Every estimate goes into turnover.json, which picks the market set (market.json). Tracked items (watchlist
+ * and market) also get a point in {house}/sales/{item}.json. book.json is replaced with this snapshot's listings.
  */
 async function updateSales(
   dir: string,
   t: number,
-  watch: Set<number>,
   byItem: Map<number, Listing[]>,
-): Promise<Map<number, SalesSeries>> {
+  watch: Set<number>,
+  scan: MarketScan,
+): Promise<{ market: number[]; sales: Map<number, SalesSeries> }> {
   const prev = await readJson<Book | null>(join(dir, "book.json"), null);
   const book: Book = { t, items: {} };
-  for (const id of watch) book.items[id] = bookRows(byItem.get(id) ?? []);
+  for (const [id, ls] of byItem) book.items[id] = bookRows(ls);
   const dt = prev ? t - prev.t : 0;
   const prevItems = prev && dt > 0 && dt <= MAX_SALES_GAP_S ? prev.items : null;
 
+  // An item gone since the previous snapshot is compared with no listings: it sold out (or expired).
+  const estimates = new Map<number, SaleEstimate>();
+  for (const [id, rows] of Object.entries(prevItems ?? {}))
+    estimates.set(Number(id), estimateSales(rows, book.items[id] ?? []));
+
+  const turnoverPath = join(dir, "turnover.json");
+  let turnover = await readJson<Turnover>(turnoverPath, emptyTurnover());
+  if (prevItems) {
+    turnover = addTurnover(turnover, utcDate(t), estimates);
+    await writeJson(turnoverPath, turnover);
+  }
+  const marketPath = join(dir, "market.json");
+  const before = await readJson<MarketSet>(marketPath, { t: 0, ids: [] });
+  const market = pickMarket(tradedValue(turnover), before.ids, scan.exclude, scan.n);
+  await writeJson(marketPath, { t, ids: market } satisfies MarketSet);
+
   const sales = new Map<number, SalesSeries>();
-  await pool([...watch], 16, async (id) => {
+  await pool([...watch, ...market], 16, async (id) => {
     const p = join(dir, "sales", `${id}.json`);
-    const before = await readJson<SalesSeries>(p, emptySales());
-    const prevRows = prevItems?.[id];
-    if (!prevRows) {
-      sales.set(id, before);
+    const s = await readJson<SalesSeries>(p, emptySales());
+    if (!prevItems) {
+      sales.set(id, s);
       return;
     }
-    const after = appendSales(before, t, dt, estimateSales(prevRows, book.items[id]));
+    // Not listed at the previous snapshot: nothing could sell, but the time still counts as covered.
+    const after = appendSales(s, t, dt, estimates.get(id) ?? { units: 0, value: 0 });
     sales.set(id, after);
-    if (after !== before) await writeJson(p, after);
+    if (after !== s) await writeJson(p, after);
   });
   await writeJson(join(dir, "book.json"), book);
-  return sales;
+  return { market, sales };
 }
 
 async function collectHouse(
@@ -159,7 +203,7 @@ async function collectHouse(
   meta: Meta,
   watch: Set<number>,
   seen: Set<number>,
-  onFocus?: (f: FocusSnapshot) => void,
+  scan?: MarketScan,
 ): Promise<string> {
   const prev = meta.houses[house.id];
   const res = await api.commodities(house.id, prev?.lastModified);
@@ -200,30 +244,35 @@ async function collectHouse(
   for (const [id, s] of stats) latest.items[id] = [s.min, s.p10, s.median, s.qty, s.listings];
   await writeJson(join(dir, "latest.json"), latest);
 
-  // hourly: watchlist items, including a qty-0 point when absent
+  // Focus house: sales for every commodity first, since they pick the market items tracked below.
+  let tracked = watch;
+  let focus: Omit<FocusSnapshot, "hourly"> | undefined;
+  if (scan) {
+    const byItem = new Map<number, Listing[]>();
+    for (const l of listings) {
+      const id = l.item?.id;
+      if (typeof id !== "number") continue;
+      const arr = byItem.get(id) ?? [];
+      arr.push(l);
+      byItem.set(id, arr);
+    }
+    const { market, sales } = await updateSales(dir, t, byItem, watch, scan);
+    tracked = new Set([...watch, ...market]);
+    const ladders = new Map<number, Ladder>();
+    for (const id of tracked) ladders.set(id, ladderOf(byItem.get(id) ?? []));
+    focus = { house: house.id, t, ladders, sales, market };
+  }
+
+  // hourly: watchlist items (and the market items on the focus house), including a qty-0 point when absent
   const hourly = new Map<number, HourlySeries>();
-  await pool([...watch], 16, async (id) => {
+  await pool([...tracked], 16, async (id) => {
     const p = join(dir, "hourly", `${id}.json`);
     const before = await readJson<HourlySeries>(p, emptyHourly());
     const after = appendHourly(before, t, stats.get(id));
     hourly.set(id, after);
     if (after !== before) await writeJson(p, after);
   });
-
-  if (onFocus) {
-    const byItem = new Map<number, Listing[]>();
-    for (const l of listings) {
-      const id = l.item?.id;
-      if (!watch.has(id)) continue;
-      const arr = byItem.get(id) ?? [];
-      arr.push(l);
-      byItem.set(id, arr);
-    }
-    const ladders = new Map<number, Ladder>();
-    for (const id of watch) ladders.set(id, ladderOf(byItem.get(id) ?? []));
-    const sales = await updateSales(dir, t, watch, byItem);
-    onFocus({ house: house.id, t, hourly, ladders, sales });
-  }
+  if (scan && focus) scan.onFocus({ ...focus, hourly });
 
   // daily: every item present in this snapshot
   await pool([...stats.entries()], 32, async ([id, s]: [number, Stats]) => {
@@ -281,21 +330,29 @@ async function focusFromDisk(house: number, meta: Meta, watch: Set<number>): Pro
   const dir = join(DATA_DIR, String(house));
   const prev = await readJson<BuyList | null>(join(dir, "buylist.json"), null);
   const prevLadders = new Map((prev?.items ?? []).map((x) => [x.id, x.ladder] as const));
+  const { ids: stored } = await readJson<MarketSet>(join(dir, "market.json"), { t: 0, ids: [] });
+  const market = stored.filter((id) => !watch.has(id));
   const hourly = new Map<number, HourlySeries>();
   const ladders = new Map<number, Ladder>();
   const sales = new Map<number, SalesSeries>();
-  for (const id of watch) {
+  for (const id of [...watch, ...market]) {
     hourly.set(id, await readJson<HourlySeries>(join(dir, "hourly", `${id}.json`), emptyHourly()));
     ladders.set(id, prevLadders.get(id) ?? []);
     sales.set(id, await readJson<SalesSeries>(join(dir, "sales", `${id}.json`), emptySales()));
   }
-  return { house, t, hourly, ladders, sales };
+  return { house, t, hourly, ladders, sales, market };
 }
 
 /** Max ladder rows kept per item (enough to cover 2× normal price on any real market). */
 const LADDER_ROWS = 25;
 
-/** Write {focusHouse}/buylist.json: one entry per watchlist item, everything the site's buy list and item page need. */
+/** Buy list group of the market items (not on the watchlist): the site's Raid prep leaves them out. */
+const MARKET_GROUP = "market";
+
+/**
+ * Write {focusHouse}/buylist.json: one entry per tracked item (watchlist, then market), everything the site's
+ * Deals, kits and item page need.
+ */
 async function writeBuyList(
   cfg: Config,
   focus: FocusSnapshot,
@@ -325,7 +382,7 @@ async function writeBuyList(
   };
 
   const list: BuyListItem[] = [];
-  for (const id of watch) {
+  for (const id of [...watch, ...focus.market]) {
     const h = focus.hourly.get(id);
     const ladder = focus.ladders.get(id) ?? [];
     // No history yet (just added to the watchlist): still listed, as "not listed", so kits show every row.
@@ -349,7 +406,7 @@ async function writeBuyList(
       quality: items[id]?.quality ?? null,
       icon: items[id]?.icon || null,
       tip: items[id]?.tip ?? [],
-      group: groupOf.get(id) ?? "",
+      group: groupOf.get(id) ?? MARKET_GROUP,
       raidProduct: info?.product ?? false,
       uses: info?.uses ?? [],
       vendorPrice,

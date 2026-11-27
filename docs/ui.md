@@ -70,7 +70,7 @@ A kit item that is also a flip gets both rows. Vendor and soulbound items never 
   "why buy now" tags (cheap, under craft cost, under what buyers paid). Unlisted items are named but not priced.
   Soulbound items (`config.yaml` → `soulbound`) say "farm it" and stay out of the cost and the shopping list.
   "Customise" copies the kit into the viewer's own (★ in the spec row): rename, remove a slot or an option, add
-  a watchlist item as a new slot or an alternative, "Copy link" to share it (`#/kit?share=…` offers "Add to my
+  a tracked item (watchlist or market) as a new slot or an alternative, "Copy link" to share it (`#/kit?share=…` offers "Add to my
   kits"), delete. Choices and custom kits are kept in localStorage. "Copy shopping list" copies the item names.
 - **Stars** (ADR-0014): a ☆ before every item name (and on the item page) follows it; Deals and Raid prep
   have a "Starred only" filter, and Deals shows starred items first. Kept in localStorage, synced between open tabs.
@@ -84,7 +84,9 @@ A kit item that is also a flip gets both rows. Vendor and soulbound items never 
 
 ## Data: `{focusHouse}/buylist.json`
 
-Written by the collector for the focus house only (see architecture.md). One entry per watchlist item:
+Written by the collector for the focus house only (see architecture.md). One entry per tracked item: the
+watchlist, then the ~200 most traded commodities (group `market`, ADR-0014 step 5; Deals and kits use them,
+Raid prep doesn't). Each has:
 the ADR-0007 signal (now, normal, change, buy-up-to, units and cost up to it, supply change, 7-day spark),
 the current **ladder** (units per price, cheapest first, ≤ 25 rows), recipes that use it (`uses`, raid ones flagged),
 its own recipe if crafted, and vendor price. `reagentPrices` gives the current p10 of every reagent of those recipes.

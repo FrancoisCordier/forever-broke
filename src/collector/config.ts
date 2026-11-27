@@ -20,6 +20,8 @@ export interface Thresholds {
   flipHoldDays: number;
   flipMinSalesHours: number;
   flipMinProfitGold: number;
+  /** Commodities tracked on the focus house on top of the watchlist, the most traded (ADR-0014 step 5). */
+  marketItems: number;
 }
 
 /** config.yaml `kits`: kit id → class, spec, source and slots. Converted to `Kit[]` for the buy list. */
@@ -53,6 +55,7 @@ const DEFAULT_THRESHOLDS: Thresholds = {
   flipHoldDays: 2,
   flipMinSalesHours: 12,
   flipMinProfitGold: 5,
+  marketItems: 200,
 };
 
 export async function loadConfig(path = "config.yaml"): Promise<Config> {

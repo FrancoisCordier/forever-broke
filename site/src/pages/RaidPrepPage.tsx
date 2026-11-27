@@ -5,7 +5,7 @@ import { ItemName } from "../components/ItemName.tsx";
 import { ItemTable } from "../components/ItemTable.tsx";
 import { SortHeader } from "../components/SortHeader.tsx";
 import { Status } from "../components/Status.tsx";
-import { applyFilter, GROUPS, isVendor, NO_FILTER } from "../lib/buylist.ts";
+import { applyFilter, GROUPS, isVendor, MARKET_GROUP, NO_FILTER } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
 import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
@@ -106,7 +106,8 @@ export function RaidPrepPage() {
   const stars = useStars();
   if (list.state !== "ok") return <Status value={list} />;
 
-  const all = list.data.items;
+  // The watchlist only: the market items (Deals) aren't raid prep.
+  const all = list.data.items.filter((x) => x.group !== MARKET_GROUP);
   const listed = all.filter((x) => !isVendor(x));
   const shown = applyFilter(listed, filter, stars);
   const craftRows = applyFilter(crafts(all, list.data.reagentPrices ?? {}), filter, stars);

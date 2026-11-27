@@ -45,18 +45,24 @@ All prices are integer copper.
 data/
   meta.json                  # last run, per-house status/Last-Modified/errors, snapshots per day
   config.json                # copy of config.yaml for the site
-  items.json                 # id → {name, quality, cls, sub, level, icon, tip?} (icon: A21; tip: watchlist only)
+  items.json                 # id → {name, quality, cls, sub, level, icon, tip?} (icon: A21; tip: tracked items only)
   {house}/latest.json        # one row per item: current values
   {house}/hourly/{item}.json # rolling 30 days
   {house}/daily/{item}.json  # daily rollup, kept forever
-  {focusHouse}/buylist.json  # what the site loads: signals + depth + recipes per watchlist item (docs/ui.md)
-  {focusHouse}/book.json     # previous snapshot's listings (id, qty, price, short), watchlist only (ADR-0012)
+  {focusHouse}/buylist.json  # what the site loads: signals + depth + recipes per tracked item (docs/ui.md)
+  {focusHouse}/book.json     # previous snapshot's listings (id, qty, price, short), every commodity (ADR-0012)
   {focusHouse}/sales/{item}.json # estimated sales per snapshot pair: t, dt, units, value; rolling 30 days
+  {focusHouse}/turnover.json # per UTC day, item → [units sold, copper traded], every commodity, last 7 days
+  {focusHouse}/market.json   # {t, ids}: the most traded commodities tracked on top of the watchlist (ADR-0014)
 ```
 
 Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an array of objects.
 
-- Hourly files: **watchlist items only**. When an item is absent from a snapshot, it gets a point with `qty 0` and `null` prices.
+- **Tracked items** = the watchlist, plus on the focus house the market set: the `marketItems` (200) commodities
+  with the most gold traded over 7 days (`turnover.json`), not sold by a vendor (ADR-0014 step 5). Tracked
+  items get hourly files, sales files, a price ladder and a `buylist.json` entry (market items in group
+  `market`). A market item stays while it ranks in the top 400, so the set doesn't churn.
+- Hourly files: **tracked items only** (the watchlist on every house, the market set on the focus house). When an item is absent from a snapshot, it gets a point with `qty 0` and `null` prices.
 - Daily files: **every commodity item** on every house. `min` is the lowest min of the day. `p10`/`median`/`qty`/`listings` are the mean over the snapshots where the item was present, and `n` counts them. `meta.snapshotsPerDay` gives the denominator, so presence = `n / snapshotsPerDay`.
 - `latest.json` rows: `[min, p10, median, qty, listings]`.
 - `config.json` on the data branch mirrors `config.yaml` (houses, watchlist, thresholds), so the site doesn't have to parse YAML.
