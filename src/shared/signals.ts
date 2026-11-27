@@ -119,6 +119,8 @@ export interface KitSlot {
   perNight: number;
   options: number[];
   note?: string;
+  /** DPS lost without it, everything else on (from the owner's sim). Slots are listed most DPS first. */
+  dps?: number;
 }
 
 export interface Kit {

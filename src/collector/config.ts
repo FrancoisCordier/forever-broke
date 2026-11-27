@@ -81,7 +81,15 @@ function checkKits(cfg: Config, path: string): void {
     const names = kit.slots.map((s) => s.slot);
     if (new Set(names).size !== names.length) throw new Error(`${path}: kit ${id} has duplicate slot names`);
     for (const s of kit.slots) {
-      if (!s.slot || !Number.isFinite(s.perNight) || s.perNight < 0 || !Array.isArray(s.options) || !s.options.length)
+      const badDps = s.dps !== undefined && !(Number.isFinite(s.dps) && s.dps >= 0);
+      if (
+        !s.slot ||
+        !Number.isFinite(s.perNight) ||
+        s.perNight < 0 ||
+        !Array.isArray(s.options) ||
+        !s.options.length ||
+        badDps
+      )
         throw new Error(`${path}: kit ${id}: bad slot ${JSON.stringify(s)}`);
       for (const o of s.options)
         if (!watch.has(o)) throw new Error(`${path}: kit ${id}, slot ${s.slot}: item ${o} isn't on the watchlist`);

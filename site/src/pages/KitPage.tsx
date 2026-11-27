@@ -103,6 +103,7 @@ export function KitPage() {
                 <td className="kit-slot">
                   <div className="stack-xs">
                     <strong>{r.slot}</strong>
+                    {r.dps !== undefined ? <span className="kit-dps">+{r.dps} DPS</span> : null}
                     {r.note ? <span className="note">{r.note}</span> : null}
                   </div>
                 </td>
