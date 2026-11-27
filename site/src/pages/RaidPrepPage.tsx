@@ -9,10 +9,12 @@ import { applyFilter, GROUPS, isVendor, NO_FILTER } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
 import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
+import { useStars } from "../lib/stars.ts";
 import { cheap, empty, gold, lead, note, sectionHead, table, tableWrap } from "../lib/ui.ts";
 
 interface Craft {
   x: BuyListItem;
+  id: number;
   name: string;
   group: string;
   /** Reagent cost per crafted unit at current prices, or null if a reagent has no price. */
@@ -41,7 +43,7 @@ function crafts(items: BuyListItem[], prices: Record<string, number>): Craft[] {
     .map((x) => {
       const { cost, missing } = x.recipe ? craftCost(x.recipe, priceOf) : { cost: null, missing: [] };
       const margin = cost !== null && x.now !== null ? Math.round(x.now * (1 - AH_CUT)) - cost : null;
-      return { x, name: x.name, group: x.group, cost, margin, missing };
+      return { x, id: x.id, name: x.name, group: x.group, cost, margin, missing };
     });
 }
 
@@ -101,12 +103,13 @@ function CraftTable({ rows }: { rows: Craft[] }) {
 export function RaidPrepPage() {
   const list = useBuyList();
   const [filter, setFilter] = useState(NO_FILTER);
+  const stars = useStars();
   if (list.state !== "ok") return <Status value={list} />;
 
   const all = list.data.items;
   const listed = all.filter((x) => !isVendor(x));
-  const shown = applyFilter(listed, filter);
-  const craftRows = applyFilter(crafts(all, list.data.reagentPrices ?? {}), filter);
+  const shown = applyFilter(listed, filter, stars);
+  const craftRows = applyFilter(crafts(all, list.data.reagentPrices ?? {}), filter, stars);
 
   return (
     <div className="flex flex-col gap-10">

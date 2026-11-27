@@ -88,9 +88,10 @@ ladders, so config or recipe changes apply on the next run.
 
 ## Config files
 
-- `config.yaml`: region, focus house, raid date, houses, watchlist groups, vendor prices, thresholds, raid kits.
-  Kits (per class/spec: slots of "pick one of these items", units per raid night) are copied into `buylist.json`
-  for the My kit page. Every kit item must be on the watchlist; `loadConfig` rejects the file otherwise.
+- `config.yaml`: region, focus house, raid date, houses, watchlist groups, vendor prices, soulbound items,
+  thresholds, raid kits. Kits (per class and spec, with their source guide: slots of "pick one of these items",
+  units per raid night, ADR-0014) and the soulbound list are copied into `buylist.json` for the My kit page.
+  Every kit item must be on the watchlist; `loadConfig` rejects the file otherwise, or on an unknown slot key.
 - `recipes.json`: every profession recipe with reagents, generated from the API (`pnpm fetch-recipes`). Don't edit by hand.
 
 ## Failure handling

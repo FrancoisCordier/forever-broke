@@ -52,13 +52,22 @@ export interface ItemFilter {
   query: string;
   /** Watchlist group key, or "" for all. */
   group: string;
+  /** Only starred items (ADR-0014). */
+  starred: boolean;
 }
 
-export const NO_FILTER: ItemFilter = { query: "", group: "" };
+export const NO_FILTER: ItemFilter = { query: "", group: "", starred: false };
 
-export function applyFilter<T extends { name: string; group: string }>(items: T[], f: ItemFilter): T[] {
+export function applyFilter<T extends { id: number; name: string; group: string }>(
+  items: T[],
+  f: ItemFilter,
+  stars: ReadonlySet<number> = new Set(),
+): T[] {
   const q = f.query.trim().toLowerCase();
-  return items.filter((x) => (!q || x.name.toLowerCase().includes(q)) && (!f.group || x.group === f.group));
+  return items.filter(
+    (x) =>
+      (!q || x.name.toLowerCase().includes(q)) && (!f.group || x.group === f.group) && (!f.starred || stars.has(x.id)),
+  );
 }
 
 /** Watchlist group keys (config.yaml) → display names, in display order. */
@@ -69,6 +78,7 @@ export const GROUPS: [string, string][] = [
   ["elixirs", "Elixirs"],
   ["food", "Food"],
   ["buffs", "Other buffs"],
+  ["weapon", "Oils, stones, scrolls"],
   ["utility", "Stones, explosives, bandages"],
   ["herbs", "Herbs"],
   ["elemental", "Elementals"],

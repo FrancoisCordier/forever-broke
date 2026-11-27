@@ -13,6 +13,19 @@ vendorPrices:
   18256: 6000 # Imbued Vial, 60s
   8925: 500 # Crystal Vial, 5s
 
+# Kit items that bind when picked up, so they never reach the AH: farm or quest them (item API `binding`,
+# checked 2026-11-27). They stay on the watchlist for their name and icon; the site leaves them out of costs.
+soulbound:
+  - 8410 # R.O.I.D.S.
+  - 8411 # Lung Juice Cocktail
+  - 8412 # Ground Scorpok Assay
+  - 8423 # Cerebral Cortex Compound
+  - 12451 # Juju Power
+  - 12460 # Juju Might
+  - 12662 # Demonic Rune
+  - 18269 # Gordok Green Grog
+  - 227286 # Warmed Rumsey Rum with Cream
+
 # All non-empty houses (ADR-0004). 112/115/118 are always empty (A7b) and are skipped.
 # "set" groups are a hypothesis (A8), except that 110 is confirmed as the owner's house.
 houses:
@@ -65,7 +78,8 @@ watchlist:
     9088: Gift of Arthas
     9224: Potion of Demon Slaying # Forever: +180 AP vs demons. Bet: Hyjal bosses may be demons (unconfirmed)
     20520: Dark Rune # mana; own cooldown, separate from potions
-    12662: Demonic Rune
+    12662: Demonic Rune # soulbound
+    5633: Great Rage Potion
   elixirs:
     13452: Elixir of the Mongoose
     9206: Elixir of Greater Strength
@@ -79,6 +93,10 @@ watchlist:
     20004: Major Troll's Blood Elixir
     12820: Winterfall Firewater
     9179: Elixir of Greater Intellect # +25 Int, 1 h
+    9187: Elixir of Greater Agility # +25 Agi, 1 h
+    6373: Elixir of Fire Power # +10 fire, 30 min
+    21546: Elixir of Holy Power # +40 holy, 30 min
+    246948: Distilled Firewater # +35 melee AP, 20 min
     # Level-55 Forever elixirs are in forever_raid. Lower ones are covered by daily data.
   forever_raid:
     # New in Forever. Flasks only work in Mount Hyjal / Hyjal Summit / Barrow Deeps (verified item text 2026-11-25).
@@ -90,6 +108,16 @@ watchlist:
     250329: Elixir of the Phalanx # +400 HP, +500 armor
     250337: Elixir of the Owl # +25 Int, +2% crit
     250338: Elixir of Sages # +25 Spi, +2% crit
+    250348: Elixir of the Whale # +25 Spi, +2% crit
+    250336: Elixir of Wicked Regeneration # 10 mana + 9 health / 5 s
+    277500: Scroll of Imbue Greater Flame # mage staff imbue, +20 fire, 1 h
+    277502: Scroll of Imbue Precision # mage staff imbue, +1% crit, 1 h
+    277493: Scroll of Cat Familiar # +12 Int, 1 h
+    286152: Plated Armorfish # well fed: +150 armor
+    250081: Clam Linguine # well fed: +20 Sta
+    250068: Savory Turtle Stew # well fed: +20 Sta
+    250070: Bear Bruscitti # well fed: +20 Str
+    250071: Steaming Stag Steak # well fed: +20 Str
     250351: Elixir of the Grizzly # +25 Str, +2% crit
     250350: Elixir of Ferocity # +18 Str/Agi
     250341: Greater Mageblood Elixir
@@ -132,12 +160,32 @@ watchlist:
     18045: Tender Wolf Steak
     250072: Swiftstrike Steak # Forever: well fed = +20 Agi, 15 min
     12217: Dragonbreath Chili # melee fire proc, 10 min
+    13933: Lobster Stew # well fed: +28 spell damage
+    13935: Baked Salmon # well fed: +28 spell damage
+    13934: Mightfish Steak # Forever: well fed = +40 AP
+    21151: Rumsey Rum Black Label # +15 Sta, 15 min
+    21114: Rumsey Rum Dark # +10 Sta, 15 min
   buffs:
     # In a raid kit but never listed on house 110 yet (2026-11-26). Watched so they show up when they are.
     12460: Juju Might # +40 AP, 10 min. Forever classes it as a quest item
     8412: Ground Scorpok Assay # +25 Agi, 1 h
     20748: Brilliant Mana Oil # weapon: 15 mana / 5 s, +30 healing, 30 min
     20747: Lesser Mana Oil # weapon mana regen, 30 min. The hunter sim's pick while Brilliant can't be had
+    # Soulbound (see `soulbound`): watched for their name and icon only.
+    12451: Juju Power
+    8410: R.O.I.D.S.
+    8411: Lung Juice Cocktail
+    8423: Cerebral Cortex Compound
+    18269: Gordok Green Grog
+    227286: Warmed Rumsey Rum with Cream
+  weapon:
+    18262: Elemental Sharpening Stone # +2% melee crit, 30 min
+    20750: Wizard Oil # +24 spell damage, 30 min
+    20749: Brilliant Wizard Oil # +36 spell damage, +1% crit, 30 min
+    3824: Shadow Oil # shadow bolt proc, 30 min
+    3829: Frost Oil # frostbolt proc, 30 min
+    10310: Scroll of Strength IV # +17 Str, 30 min
+    10305: Scroll of Protection IV # +240 armor, 30 min
   utility:
     12404: Dense Sharpening Stone
     12643: Dense Weightstone
@@ -147,21 +195,32 @@ watchlist:
     18588: Ez-Thro Dynamite II # no Engineering needed
     14530: Heavy Runecloth Bandage
 
-# Raid kits for the "My kit" page. Quantities are per raid night (~3 h); the page lets you change them.
-# Every item must be on the watchlist (that's where its price comes from). A slot with several
-# options means "pick one"; the first is the default.
+# Raid kits for the "My kit" page (ADR-0014): one per class and spec, picked by class then spec on the site.
+# Quantities are per raid night (~3 h), from each item's duration (item API text, 2026-11-27): 2 h flask 2,
+# 1 h buff 3, 30 min buff 6, 15 min food 12, and 6 for potions, runes and short buffs (about one per boss).
+# The page lets the viewer change them. Every item must be on the watchlist (that's where its price comes
+# from). A slot with several options means "pick one": the default is the first that isn't soulbound, or
+# the cheapest listed one when the slot says `cheapest: true`. `dps` (DPS lost without it, everything else
+# on) only where a sim backs it; other kits keep their guide's order.
 kits:
-  # From the owner's MM hunter sim (2026-11-27). `dps` = DPS lost without that one item, everything else on;
-  # slots are in that order. Left out: Major Frenzy Potion (+4 DPS, but it takes the potion cooldown from Major
-  # Mana Potion, which is worth more), sharpening stones (melee only), Ferocity/Sages/Fortitude (not in the sim).
+  # Hunter: the owner's guide, https://toxickevinferm.github.io/hunter-guide/guide/ (WoWSims Forever, simmed
+  # 2026-11-19). `dps` per playstyle from its consumables table; alternatives as further options.
+  # Marksmanship is the owner's own list (2026-11-27), which matches the guide's turret column.
   hunter_mm:
-    label: Hunter · Marksmanship
+    class: Hunter
+    spec: Marksmanship
+    source:
+      {
+        name: Forever Hunter Guide (turret),
+        url: "https://toxickevinferm.github.io/hunter-guide/guide/?build=mm-turret",
+        date: "2026-11-19",
+      }
     slots:
       - slot: Rune
         dps: 50
         perNight: 6 # own cooldown, on top of potions: about one per boss plus long trash
-        options: [12662, 20520]
-        note: Demonic Rune. Own cooldown, so it comes on top of your mana potions. Dark Rune shares that cooldown.
+        options: [20520, 12662]
+        note: Own cooldown, so it comes on top of your mana potions. Demonic Rune is the same but soulbound, so the AH only has Dark Rune.
       - slot: Agility elixir
         dps: 43
         perNight: 6 # 30 min
@@ -176,12 +235,12 @@ kits:
         dps: 22
         perNight: 3 # 1 h
         options: [8412]
-        note: Ground Scorpok Assay. Stacks with Mongoose. Never listed on the AH so far.
+        note: Ground Scorpok Assay. Stacks with Mongoose.
       - slot: Flask
         dps: 21
         perNight: 2 # 2 h each, persists through death
-        options: [274274]
-        note: Natural Aggression. The +2% crit only counts in Hyjal and the Barrow Deeps.
+        options: [274274, 13511]
+        note: Natural Aggression. The +2% crit only counts in Hyjal and the Barrow Deeps. Anywhere else, take Flask of Distilled Wisdom (+17).
       - slot: Food
         dps: 18
         perNight: 12 # well fed lasts 15 min
@@ -195,8 +254,8 @@ kits:
       - slot: Juju Might
         dps: 12
         perNight: 6 # 10 min: one per boss
-        options: [12460, 12820]
-        note: Same slot as Winterfall Firewater. Juju Might has never been listed on the AH so far.
+        options: [12460]
+        note: Ranged and melee attack power. Winterfall Firewater takes the same slot but is melee only, so it does nothing at range.
       - slot: Mana regen
         dps: 8
         perNight: 6 # 30 min
@@ -207,6 +266,440 @@ kits:
         perNight: 6 # 30 min
         options: [20747]
         note: Lesser Mana Oil. Turret only (you never swing). Brilliant Mana Oil can't be had yet.
+
+  hunter_bm:
+    class: Hunter
+    spec: Beast Mastery
+    source:
+      {
+        name: Forever Hunter Guide (turret tiers),
+        url: "https://toxickevinferm.github.io/hunter-guide/guide/?build=bm-turret",
+        date: "2026-11-19",
+      }
+    slots:
+      - {
+          slot: Rune,
+          dps: 50,
+          perNight: 6,
+          options: [20520, 12662],
+          note: "Own cooldown, on top of your mana potions. Demonic Rune is soulbound, so the AH only has Dark Rune.",
+        }
+      - {
+          slot: Agility elixir,
+          dps: 43,
+          perNight: 6,
+          options: [13452, 250328, 9187],
+          note: Elixir of the Mongoose. The best single consumable.,
+        }
+      - { slot: Mana potion, dps: 33, perNight: 6, options: [13444], note: Use every potion cooldown on this one. }
+      - { slot: Scorpok, dps: 22, perNight: 3, options: [8412], note: Ground Scorpok Assay. Stacks with your elixir. }
+      - {
+          slot: Flask,
+          dps: 21,
+          perNight: 2,
+          options: [274274, 13511],
+          note: "Natural Aggression: the crit only counts in Hyjal and the Barrow Deeps. Anywhere else, take Flask of Distilled Wisdom.",
+        }
+      - { slot: Food, dps: 18, perNight: 12, options: [250072, 13934, 13928], note: Swiftstrike Steak (+20 Agi). }
+      - { slot: Intellect, dps: 15, perNight: 3, options: [9179], note: Mana. }
+      - {
+          slot: Juju Might,
+          dps: 12,
+          perNight: 6,
+          options: [12460],
+          note: Ranged and melee attack power. Winterfall Firewater is melee only.,
+        }
+      - {
+          slot: Mana regen,
+          dps: 8,
+          perNight: 6,
+          options: [250341],
+          note: Greater Mageblood. Stacking with Mongoose isn't confirmed in game.,
+        }
+      - {
+          slot: Weapon oil,
+          dps: 7,
+          perNight: 6,
+          options: [20747],
+          note: "Lesser Mana Oil. You never swing, so the oil's mana counts.",
+        }
+      - {
+          slot: Frenzy potion,
+          dps: 4,
+          perNight: 2,
+          options: [250943],
+          note: Shares the potion cooldown with Major Mana Potion. A small gain when the mana potion isn't needed.,
+        }
+
+  hunter_sv_weave:
+    class: Hunter
+    spec: Survival · Weave
+    source:
+      {
+        name: Forever Hunter Guide (weave),
+        url: "https://toxickevinferm.github.io/hunter-guide/guide/?build=sv-weave",
+        date: "2026-11-19",
+      }
+    slots:
+      - {
+          slot: Agility elixir,
+          dps: 47,
+          perNight: 6,
+          options: [13452, 250328, 9187],
+          note: Elixir of the Mongoose. The best single consumable.,
+        }
+      - { slot: Scorpok, dps: 25, perNight: 3, options: [8412], note: Ground Scorpok Assay. Stacks with your elixir. }
+      - {
+          slot: Flask,
+          dps: 22,
+          perNight: 2,
+          options: [274274, 274275, 274276, 13511],
+          note: "Natural Aggression: the crit only counts in Hyjal and the Barrow Deeps.",
+        }
+      - {
+          slot: Food,
+          dps: 20,
+          perNight: 12,
+          options: [250072, 13934, 13928],
+          note: Swiftstrike Steak (+20 Agi). Grilled Squid is +1% crit on Forever.,
+        }
+      - {
+          slot: Juju Might,
+          dps: 15,
+          perNight: 6,
+          options: [12460, 12820],
+          note: Same slot as Winterfall Firewater (melee attack power only).,
+        }
+      - {
+          slot: Intellect,
+          dps: 11,
+          perNight: 3,
+          options: [9179],
+          note: Careful Aim turns the Intellect into attack power.,
+        }
+      - {
+          slot: Sharpening stone,
+          dps: 9,
+          perNight: 6,
+          options: [18262],
+          note: Elemental Sharpening Stone on the two-hander.,
+        }
+      - {
+          slot: Frenzy potion,
+          dps: 5,
+          perNight: 6,
+          options: [250943],
+          note: "Your potion: drink it with Rapid Fire. Weave rarely runs short of mana.",
+        }
+      - {
+          slot: Strength,
+          dps: 4,
+          perNight: 6,
+          options: [10310, 12451],
+          note: Scroll of Strength IV. Juju Power takes the same slot.,
+        }
+
+  hunter_sv_melee:
+    class: Hunter
+    spec: Survival · Melee
+    source:
+      {
+        name: Forever Hunter Guide (melee),
+        url: "https://toxickevinferm.github.io/hunter-guide/guide/?build=sv-melee",
+        date: "2026-11-19",
+      }
+    slots:
+      - { slot: Agility elixir, dps: 28, perNight: 6, options: [13452, 250328, 9187], note: Elixir of the Mongoose. }
+      - {
+          slot: Flask,
+          dps: 22,
+          perNight: 2,
+          options: [274275, 274274, 274276, 13511],
+          note: "Natural Precision over Aggression: fewer dodges and parries. Hyjal and the Barrow Deeps only.",
+        }
+      - {
+          slot: Rune,
+          dps: 21,
+          perNight: 6,
+          options: [20520, 12662],
+          note: "Own cooldown, on top of your mana potions. Demonic Rune is soulbound.",
+        }
+      - {
+          slot: Mana potion,
+          dps: 15,
+          perNight: 6,
+          options: [13444],
+          note: "Every potion cooldown on this, not Frenzy.",
+        }
+      - { slot: Scorpok, dps: 14, perNight: 3, options: [8412], note: Ground Scorpok Assay. }
+      - { slot: Intellect, dps: 12, perNight: 3, options: [9179], note: For Careful Aim. }
+      - { slot: Juju Might, dps: 11, perNight: 6, options: [12460, 12820], note: Same slot as Winterfall Firewater. }
+      - {
+          slot: Food,
+          dps: 11,
+          perNight: 12,
+          options: [250072, 13934, 13928],
+          note: Swiftstrike Steak. Mightfish Steak is as good here.,
+        }
+      - {
+          slot: Main-hand stone,
+          dps: 7,
+          perNight: 6,
+          options: [18262],
+          note: Elemental Sharpening Stone on the main hand.,
+        }
+      - { slot: Mana regen, dps: 6, perNight: 6, options: [250341], note: Greater Mageblood. }
+      - { slot: Off-hand stone, dps: 4, perNight: 6, options: [12404], note: Dense Sharpening Stone on the off hand. }
+      - {
+          slot: Strength,
+          dps: 4,
+          perNight: 6,
+          options: [10310, 12451],
+          note: Scroll of Strength IV. Juju Power takes the same slot.,
+        }
+      - {
+          slot: Chili,
+          dps: 3,
+          perNight: 6,
+          options: [12217],
+          note: Dragonbreath Chili. The sim stacks it with your food; not confirmed in game.,
+        }
+
+  # Wowhead WoW: Forever guides (/forever/guide/classes/<class>/<spec>/enchants-consumables-pve-<role>), read
+  # 2026-11-27. Only these specs had a level-60 raid list then; the others were still the level-30 beta's
+  # leveling list. Situational items (protection potions, explosives, invisibility, conjured gems) left out.
+  mage_fire:
+    class: Mage
+    spec: Fire
+    source:
+      {
+        name: Wowhead (Foolipe),
+        url: "https://www.wowhead.com/forever/guide/classes/mage/fire/enchants-consumables-pve-dps",
+        date: "2026-11-26",
+      }
+    slots:
+      - { slot: Flask, perNight: 2, options: [13512], note: Flask of Supreme Power. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - {
+          slot: Crit elixir,
+          perNight: 6,
+          cheapest: true,
+          options: [250338, 250351, 250337, 250348, 13452],
+          note: "They don't stack with each other: take the cheapest for the 2% crit. Without a priest, Sages or Whale.",
+        }
+      - { slot: Fire power, perNight: 6, options: [6373], note: Elixir of Fire Power. }
+      - { slot: Mana regen, perNight: 6, options: [250341], note: Greater Mageblood. }
+      - { slot: Health elixir, perNight: 6, options: [250335], note: Elixir of Greater Fortitude (+400 HP). }
+      - { slot: Food, perNight: 12, options: [13933, 13935], note: Lobster Stew or Baked Salmon (+28 spell power). }
+      - { slot: Weapon oil, perNight: 6, options: [20750], note: Wizard Oil. Stacks with the mage scroll. }
+      - { slot: Mage scroll, perNight: 3, options: [277500], note: Scroll of Imbue Greater Flame (staff). }
+      - { slot: Intellect scroll, perNight: 3, options: [277493], note: Scroll of Cat Familiar (+12 Int). }
+      - { slot: Armor scroll, perNight: 6, options: [10305], note: Scroll of Protection IV. }
+      - { slot: Mana potion, perNight: 6, options: [13444], note: One potion per 2 minutes. }
+      - {
+          slot: Combat potion,
+          perNight: 3,
+          options: [250937],
+          note: Major Spellblasting Potion. Shares the potion cooldown.,
+        }
+      - {
+          slot: Rune,
+          perNight: 6,
+          options: [20520, 12662],
+          note: "Shares the mana gem cooldown: use it instead of your weaker gem on long fights.",
+        }
+
+  mage_arcane:
+    class: Mage
+    spec: Arcane
+    source:
+      {
+        name: Wowhead (Foolipe),
+        url: "https://www.wowhead.com/forever/guide/classes/mage/arcane/enchants-consumables-pve-dps",
+        date: "2026-11-26",
+      }
+    slots:
+      - { slot: Flask, perNight: 2, options: [13512], note: Flask of Supreme Power. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - {
+          slot: Crit elixir,
+          perNight: 6,
+          cheapest: true,
+          options: [250338, 250351, 250337, 250348, 13452],
+          note: "They don't stack with each other: take the cheapest for the 2% crit. Without a priest, Sages or Whale.",
+        }
+      - { slot: Mana regen, perNight: 6, options: [250341], note: Greater Mageblood. }
+      - { slot: Health elixir, perNight: 6, options: [250335], note: Elixir of Greater Fortitude (+400 HP). }
+      - { slot: Food, perNight: 12, options: [13933, 13935], note: Lobster Stew or Baked Salmon (+28 spell power). }
+      - { slot: Weapon oil, perNight: 6, options: [20750], note: Wizard Oil. Stacks with the mage scroll. }
+      - { slot: Mage scroll, perNight: 3, options: [277502], note: "Scroll of Imbue Precision (staff, +1% crit)." }
+      - { slot: Intellect scroll, perNight: 3, options: [277493], note: Scroll of Cat Familiar (+12 Int). }
+      - { slot: Armor scroll, perNight: 6, options: [10305], note: Scroll of Protection IV. }
+      - { slot: Mana potion, perNight: 6, options: [13444], note: One potion per 2 minutes. }
+      - {
+          slot: Combat potion,
+          perNight: 3,
+          options: [250937],
+          note: Major Spellblasting Potion. Shares the potion cooldown.,
+        }
+      - {
+          slot: Rune,
+          perNight: 6,
+          options: [20520, 12662],
+          note: "Shares the mana gem cooldown: use it instead of your weaker gem on long fights.",
+        }
+
+  druid_balance:
+    class: Druid
+    spec: Balance
+    source:
+      {
+        name: Wowhead (DrWonder),
+        url: "https://www.wowhead.com/forever/guide/classes/druid/balance/enchants-consumables-pve-dps",
+        date: "2026-10-29",
+      }
+    slots:
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - {
+          slot: Nature power,
+          perNight: 6,
+          options: [250343],
+          note: "Elixir of Nature Power: Wrath, Insect Swarm, Hurricane. Alongside Greater Arcane, not instead.",
+        }
+      - {
+          slot: Crit elixir,
+          perNight: 6,
+          options: [250337, 250338, 250348],
+          note: Elixir of the Owl. Sages or Whale only if you talented into Spirit regen.,
+        }
+      - {
+          slot: Mana regen,
+          perNight: 6,
+          options: [250341],
+          note: Greater Mageblood. Worth more to Balance than to most casters.,
+        }
+      - {
+          slot: Weapon oil,
+          perNight: 6,
+          options: [20749, 20750],
+          note: Brilliant Wizard Oil. Druids have no weapon imbue of their own.,
+        }
+      - { slot: Food, perNight: 12, options: [13935, 13933, 13931], note: Spell power food. }
+      - { slot: Mana potion, perNight: 6, options: [13444], note: Your emergency button. }
+      - {
+          slot: Combat potion,
+          perNight: 3,
+          options: [250937],
+          note: Major Spellblasting Potion. Shares the potion cooldown.,
+        }
+      - {
+          slot: Rune,
+          perNight: 6,
+          options: [20520, 12662],
+          note: Own cooldown. Demonic Rune is soulbound; Dark Rune drops in Scholomance and trades.,
+        }
+
+  druid_feral_tank:
+    class: Druid
+    spec: Feral tank
+    source:
+      {
+        name: Wowhead,
+        url: "https://www.wowhead.com/forever/guide/classes/druid/feral/enchants-consumables-pve-tank",
+        date: "2026-11-25",
+      }
+    slots:
+      - {
+          slot: Flask,
+          perNight: 2,
+          options: [13510, 274275],
+          note: Flask of the Titans. Natural Precision in Hyjal and the Barrow Deeps.,
+        }
+      - {
+          slot: Food,
+          perNight: 12,
+          options: [286152, 250081, 250068, 250070, 250071],
+          note: Plated Armorfish scales with armor (likely unintended). Stamina or Strength food otherwise.,
+        }
+      - { slot: Agility, perNight: 6, options: [13452, 9187, 250328], note: Elixir of the Mongoose. }
+      - { slot: Strength, perNight: 6, options: [12451, 9206, 250351], note: Juju Power. }
+      - { slot: Attack power, perNight: 6, options: [12460, 12820, 246948], note: Juju Might. }
+      - {
+          slot: Health and armor,
+          perNight: 6,
+          options: [250329, 250335, 13445],
+          note: "Elixir of the Phalanx (+400 HP, +500 armor).",
+        }
+      - { slot: Gift of Arthas, perNight: 6, options: [9088], note: Attackers take more damage. }
+      - { slot: Mana regen, perNight: 6, options: [250341, 250336], note: Greater Mageblood. }
+      - { slot: Chili, perNight: 6, options: [12217], note: "Dragonbreath Chili. Its own effect, on top of food." }
+      - { slot: Drink, perNight: 12, options: [21151, 227286, 18269, 21114], note: Rumsey Rum Black Label (+15 Sta). }
+      - {
+          slot: Blasted Lands,
+          perNight: 3,
+          options: [8411, 8412, 8410],
+          note: Lung Juice Cocktail. One Blasted Lands buff at a time.,
+        }
+      - {
+          slot: Weapon stone,
+          perNight: 6,
+          options: [12643, 12404],
+          note: "Dense Weightstone (mace, staff) or Dense Sharpening Stone (polearm).",
+        }
+      - { slot: Armor potion, perNight: 3, options: [13455], note: Greater Stoneshield Potion. }
+      - { slot: Rage potion, perNight: 6, options: [13442, 5633], note: Mighty Rage Potion. }
+      - { slot: Healing potion, perNight: 6, options: [13446], note: Major Healing Potion. }
+
+  paladin_retribution:
+    class: Paladin
+    spec: Retribution
+    source:
+      {
+        name: Wowhead (Surveillant),
+        url: "https://www.wowhead.com/forever/guide/classes/paladin/retribution/enchants-consumables-pve-dps",
+        date: "2026-11-24",
+      }
+    slots:
+      - { slot: Flask, perNight: 2, options: [13512], note: Flask of Supreme Power. }
+      - { slot: Holy power, perNight: 6, options: [21546], note: Elixir of Holy Power. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - { slot: Strength elixir, perNight: 6, options: [250351], note: Elixir of the Grizzly. Overwrites Juju Power. }
+      - { slot: Health elixir, perNight: 6, options: [250329], note: Elixir of the Phalanx. }
+      - {
+          slot: Weapon oil,
+          perNight: 6,
+          options: [3824, 20749, 3829],
+          note: "Shadow Oil single target, Brilliant Wizard Oil for AoE.",
+        }
+      - { slot: Food, perNight: 12, options: [13933], note: Lobster Stew (spell power). }
+      - {
+          slot: Chili,
+          perNight: 6,
+          options: [12217],
+          note: Dragonbreath Chili. Stacks with Well Fed and scales with spell power.,
+        }
+      - {
+          slot: Drink,
+          perNight: 12,
+          options: [21151, 18269],
+          note: "Rumsey Rum Black Label. Stamina, stacks with Well Fed.",
+        }
+      - { slot: Blasted Lands, perNight: 3, options: [8410, 8412, 8423], note: One at a time. }
+      - { slot: Attack power, perNight: 6, options: [12460, 12820], note: Juju Might or Winterfall Firewater. }
+      - {
+          slot: Combat potion,
+          perNight: 3,
+          options: [250937],
+          note: Major Spellblasting Potion. Better than Frenzy for DPS.,
+        }
+      - {
+          slot: Mana potion,
+          perNight: 6,
+          options: [13444],
+          note: Running out of mana is a death sentence for a Paladin.,
+        }
+      - { slot: Healing potion, perNight: 3, options: [13446], note: Major Healing Potion. }
+      - { slot: Rune, perNight: 6, options: [20520, 12662], note: Shares the cooldown with healthstones. }
 
 # Buy-list thresholds (ADR-0007). Sell-side thresholds (spike, squeeze) come with the stockpile phase.
 thresholds:

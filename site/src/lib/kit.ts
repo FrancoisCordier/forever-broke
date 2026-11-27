@@ -38,6 +38,24 @@ export function useKitPrefs(): [KitPrefs, (p: KitPrefs) => void] {
 export const pickKit = (kits: Kit[], prefs: KitPrefs): Kit | undefined =>
   kits.find((k) => k.id === prefs.kit) ?? kits[0];
 
+/**
+ * Kits as written before ADR-0014 have only a label ("Hunter · Marksmanship"): split it into class and spec
+ * so the picker works until the collector's next run rewrites the buy list.
+ */
+export const withClass = (kits: Kit[]): Kit[] =>
+  kits.map((k) => {
+    if (k.class && k.spec) return k;
+    const [cls, ...spec] = k.label.split(" · ");
+    return { ...k, class: cls, spec: spec.join(" · ") || cls };
+  });
+
+/** Classes in the order their first kit appears, each with its kits (specs). */
+export function kitsByClass(kits: Kit[]): [string, Kit[]][] {
+  const by = new Map<string, Kit[]>();
+  for (const k of kits) by.set(k.class, [...(by.get(k.class) ?? []), k]);
+  return [...by.entries()];
+}
+
 export interface KitRow {
   key: string;
   slot: string;
@@ -45,24 +63,62 @@ export interface KitRow {
   dps?: number;
   options: BuyListItem[];
   item: BuyListItem | undefined;
+  /** The chosen item binds when picked up: farm or quest it, the AH never has it. */
+  soulbound: boolean;
   perNight: number;
   need: number;
-  /** Cost of the `units` cheapest listed units (≤ need). */
+  /** Cost of the `units` cheapest listed units (≤ need). Zero when soulbound. */
   cost: number;
   units: number;
 }
 
-export function kitRows(kit: Kit, items: BuyListItem[], prefs: KitPrefs): KitRow[] {
+/**
+ * The option a slot starts on: the cheapest listed one when the slot says its options are interchangeable,
+ * otherwise the first one the AH can have (soulbound items come last), otherwise the first.
+ */
+export function defaultOption(
+  options: BuyListItem[],
+  soulbound: ReadonlySet<number>,
+  cheapest = false,
+): BuyListItem | undefined {
+  const tradeable = options.filter((x) => !soulbound.has(x.id));
+  if (cheapest) {
+    const priced = tradeable.filter((x) => x.now !== null);
+    if (priced.length) return priced.reduce((a, b) => ((b.now as number) < (a.now as number) ? b : a));
+  }
+  return tradeable[0] ?? options[0];
+}
+
+export function kitRows(
+  kit: Kit,
+  items: BuyListItem[],
+  prefs: KitPrefs,
+  soulbound: ReadonlySet<number> = new Set(),
+): KitRow[] {
   const byId = new Map(items.map((x) => [x.id, x]));
   return kit.slots.map((s) => {
     const key = `${kit.id}:${s.slot}`;
     const options = s.options.map((id) => byId.get(id)).filter((x): x is BuyListItem => x !== undefined);
     const chosen = prefs.choice[key];
-    const item = options.find((x) => x.id === chosen) ?? options[0];
+    const item = options.find((x) => x.id === chosen) ?? defaultOption(options, soulbound, s.cheapest);
+    const bound = item !== undefined && soulbound.has(item.id);
     const perNight = prefs.perNight[key] ?? s.perNight;
     const need = perNight * prefs.nights;
-    const { units, cost } = item && item.now !== null ? costOfUnits(item.ladder, need) : { units: 0, cost: 0 };
-    return { key, slot: s.slot, note: s.note, dps: s.dps, options, item, perNight, need, cost, units };
+    const { units, cost } =
+      item && !bound && item.now !== null ? costOfUnits(item.ladder, need) : { units: 0, cost: 0 };
+    return {
+      key,
+      slot: s.slot,
+      note: s.note,
+      dps: s.dps,
+      options,
+      item,
+      soulbound: bound,
+      perNight,
+      need,
+      cost,
+      units,
+    };
   });
 }
 
