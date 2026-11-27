@@ -53,6 +53,12 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
      Arcane), Druid (Balance, Feral tank), Paladin (Retribution). Every other Wowhead page was still the
      level-30 beta's leveling list ("will be updated for level 60"), and Frost Mage had no page: no kit until
      those pages get a raid list. Re-check by rendering the same URLs.
+   - **Added 2026-11-27 (owner's request):** Protection Paladin, Affliction / Demonology / Destruction Warlock,
+     Arms and Protection Warrior, from the "40-60" row of each page's quick-reference table. It's the level-60
+     tier of a leveling list, not a raid list (no flasks, no world buffs), so each kit's source says "leveling
+     table, 40-60" and its first note says so. Greater Spellstone is left out (conjured, soulbound). Still on
+     the level-30 beta text (no 40-60 row): Rogue, Priest, Shaman, Fury Warrior, Holy Paladin, Feral DPS and
+     Restoration Druid; Frost Mage has no page.
    - **Units per night** come from each item's duration over a ~3 h raid: 2 h flask 2, 1 h buff 3, 30 min
      buff 6, 15 min food 12; potions, runes and short buffs 6 (about one per boss).
    - **Soulbound** kit items (A22: Scorpok, Juju, R.O.I.D.S., Demonic Rune…) are listed in
