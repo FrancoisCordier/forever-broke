@@ -29,6 +29,7 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
 | `pnpm resolve-items <ids…>` / `--search "<name>"`      | Verify item IDs against the Forever item database                                                           |
 | `pnpm fetch-recipes`                                   | Download all profession recipes + reagents into `recipes.json`                                              |
 | `pnpm collect`                                         | Run the collector locally (`DATA_DIR` defaults to `out/data`)                                               |
+| `pnpm collect:remote` / `pnpm collect:watch`           | Start the `collect` workflow on `main` now (publishes to the site) / follow its latest run (needs `gh`)     |
 | `pnpm dev`                                             | Site dev server (reads live data; override with `VITE_DATA_BASE`)                                           |
 | `pnpm build` / `pnpm preview`                          | Build the site into `dist/` / serve the build locally                                                       |
 | `pnpm test` / `pnpm typecheck` / `pnpm lint`           | Unit tests / type check (collector + site) / Biome                                                          |

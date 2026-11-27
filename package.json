@@ -13,6 +13,8 @@
     "preview": "vite preview",
     "resolve-items": "node --env-file-if-exists=.env scripts/resolve-items.ts",
     "collect": "node --env-file-if-exists=.env src/collector/main.ts",
+    "collect:remote": "gh workflow run collect.yml --ref main && echo 'Started. Follow it with: pnpm collect:watch'",
+    "collect:watch": "gh run watch --exit-status $(gh run list --workflow collect.yml --limit 1 --json databaseId --jq '.[0].databaseId')",
     "test": "vitest run",
     "fetch-recipes": "node --env-file-if-exists=.env scripts/fetch-recipes.ts",
     "lint": "biome check .",
