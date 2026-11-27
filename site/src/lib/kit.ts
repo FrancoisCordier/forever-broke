@@ -42,6 +42,7 @@ export interface KitRow {
   key: string;
   slot: string;
   note?: string;
+  dps?: number;
   options: BuyListItem[];
   item: BuyListItem | undefined;
   perNight: number;
@@ -61,7 +62,7 @@ export function kitRows(kit: Kit, items: BuyListItem[], prefs: KitPrefs): KitRow
     const perNight = prefs.perNight[key] ?? s.perNight;
     const need = perNight * prefs.nights;
     const { units, cost } = item && item.now !== null ? costOfUnits(item.ladder, need) : { units: 0, cost: 0 };
-    return { key, slot: s.slot, note: s.note, options, item, perNight, need, cost, units };
+    return { key, slot: s.slot, note: s.note, dps: s.dps, options, item, perNight, need, cost, units };
   });
 }
 

@@ -58,9 +58,29 @@ doesn't stack** (Mongoose, Sages, Owl, Grizzly). Its best-in-slot list for a hun
 - Food: Swiftstrike Steak (Forever: well fed = +20 Agi) or Dragonbreath Chili. Explosives: Ez-Thro Dynamite II,
   Goblin Sapper Charge. Ammo: Swiftfeather Arrow / Swiftstrike Shot (epic; not commodities, so no AH price).
 
-This is the `hunter_mm` kit in `config.yaml`. Never listed on house 110 so far: Ground Scorpok Assay, Juju
-Might (Forever classes it as a quest item), Brilliant Mana Oil, Demonic Rune. Elixir of Sages is thin
-(3 listed on 26 Nov). On 26 Nov the kit came to ~149g for 4 raid nights before flasks and unlisted items.
+Superseded on 2026-11-27 by the owner's MM hunter sim (below) for the `hunter_mm` kit.
+
+### MM hunter sim (owner, 2026-11-27)
+
+DPS lost without each item, everything else on. This is the `hunter_mm` kit in `config.yaml`, in this order:
+
+| #   | Item                               | DPS | Note                                                            |
+| --- | ---------------------------------- | --- | --------------------------------------------------------------- |
+| 1   | Demonic Rune                       | 50  | Own cooldown, on top of mana potions                            |
+| 2   | Elixir of the Mongoose             | 43  |                                                                 |
+| 3   | Major Mana Potion                  | 33  | Every potion cooldown goes here                                 |
+| 4   | Ground Scorpok Assay               | 22  | Stacks with Mongoose                                            |
+| 5   | Flask of Natural Aggression        | 21  | Crit only in Hyjal and the Barrow Deeps                         |
+| 6   | Swiftstrike Steak                  | 18  | +20 Agi. Grilled Squid is +1% crit on Forever                   |
+| 7   | Elixir of Greater Intellect        | 15  | Careful Aim turns Int into AP                                   |
+| 8   | Juju Might                         | 12  | Same slot as Winterfall Firewater                               |
+| 9   | Greater Mageblood Elixir           | 8   | Stacking with Mongoose unconfirmed in game                      |
+| 10  | Lesser Mana Oil                    | 7   | Turret only. Brilliant Mana Oil can't be had yet                |
+| 11  | Major Frenzy Potion                | 4   | A net loss: it takes the potion cooldown from Major Mana Potion |
+| —   | Elemental / Dense Sharpening Stone | 0   | Melee only                                                      |
+
+Never listed on house 110 so far: Ground Scorpok Assay, Juju Might (Forever classes it as a quest item),
+Demonic Rune.
 
 ## Classic items Forever changed (item tooltips, 2026-11-26)
 

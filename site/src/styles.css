@@ -560,6 +560,11 @@ th[aria-sort="descending"] {
 .table .kit-slot {
   min-width: 220px;
 }
+.kit-dps {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gold);
+}
 .table .loss {
   white-space: nowrap;
 }
