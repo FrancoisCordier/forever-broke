@@ -3,6 +3,7 @@
  * (CORS-enabled, cached ~5 min). Override with VITE_DATA_BASE, e.g. to point at a local collector run.
  */
 import { useEffect, useState } from "react";
+import type { Crafts } from "../../../src/shared/crafts.ts";
 import type { BuyList } from "../../../src/shared/signals.ts";
 import type { DailySeries, HourlySeries, ItemMeta, Latest, Meta } from "../../../src/shared/types.ts";
 
@@ -47,6 +48,8 @@ export function useJson<T>(path: string | null): Loadable<T> {
 }
 
 export const useBuyList = () => useJson<BuyList>(`${HOUSE}/buylist.json`);
+/** Crafting profit over every priced recipe (~220 KB), loaded only by the Crafts page. */
+export const useCrafts = () => useJson<Crafts>(`${HOUSE}/crafts.json`);
 /** Every item in the focus house's current snapshot (~40 KB). */
 export const useLatest = () => useJson<Latest>(`${HOUSE}/latest.json`);
 /** Names of every commodity seen (~150 KB): loaded only by the stockpile page, for item search. */

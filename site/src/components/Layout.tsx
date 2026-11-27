@@ -57,6 +57,9 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/stockpile" className={navClass}>
               Stockpile
             </NavLink>
+            <NavLink to="/crafts" className={navClass}>
+              Crafts
+            </NavLink>
             <NavLink to="/raid" className={navClass}>
               Raid prep
             </NavLink>

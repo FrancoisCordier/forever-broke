@@ -12,6 +12,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import { aggregate } from "../shared/aggregate.ts";
+import { type Crafts, craftRows } from "../shared/crafts.ts";
 import {
   addTurnover,
   emptyTurnover,
@@ -359,7 +360,8 @@ async function writeBuyList(
   items: Record<string, ItemMeta>,
   watch: Set<number>,
 ): Promise<number> {
-  const raid = raidInfo(watch, items, await loadRecipes());
+  const recipes = await loadRecipes();
+  const raid = raidInfo(watch, items, recipes);
   const groupOf = new Map<number, string>();
   for (const [group, ids] of Object.entries(cfg.watchlist))
     for (const id of Object.keys(ids ?? {})) groupOf.set(Number(id), group);
@@ -447,6 +449,28 @@ async function writeBuyList(
     reagentPrices,
   };
   await writeJson(join(DATA_DIR, String(focus.house), "buylist.json"), out);
+
+  // Crafting profit over every recipe, with sales per day where the product is tracked (ADR-0014 step 5).
+  const crafts: Crafts = {
+    house: focus.house,
+    t: focus.t,
+    ...craftRows(recipes, {
+      priceOf,
+      productOf: (id) => {
+        const row = latest?.items[id];
+        return row ? { p10: row[1], qty: row[3] } : null;
+      },
+      salesOf: (id) => {
+        const s = focus.sales.get(id);
+        return s?.t.length ? summarizeSales(s, focus.t) : null;
+      },
+      meta: (id) => ({ quality: items[id]?.quality ?? null, icon: items[id]?.icon || null }),
+      vendor: new Set(Object.keys(cfg.vendorPrices).map(Number)),
+      minSalesHours: cfg.thresholds.flipMinSalesHours,
+    }),
+  };
+  await writeJson(join(DATA_DIR, String(focus.house), "crafts.json"), crafts);
+  log(`crafts for house ${focus.house}: ${crafts.rows.length} priced recipes`);
   return list.filter((x) => x.cheap).length;
 }
 
