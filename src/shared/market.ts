@@ -3,11 +3,16 @@
  * (ADR-0012), summed per UTC day into a rolling turnover file, and the commodities with the most gold traded
  * get the same tracking as the watchlist: hourly points, price ladder, sales history, a buy list entry.
  */
-import type { SaleEstimate } from "./sales.ts";
+import type { SaleEstimate, SalesSummary } from "./sales.ts";
 
 /** {house}/turnover.json: per UTC day, item id → [units sold, copper traded]. */
 export interface Turnover {
   days: Record<string, Record<string, [units: number, value: number]>>;
+  /**
+   * Per UTC day, seconds of snapshot pairs behind its numbers, to turn units into a rate. Days written before
+   * this field existed have no entry and give no rate.
+   */
+  covered?: Record<string, number>;
 }
 
 /** {house}/market.json: the commodities tracked on top of the watchlist, most traded first. */
@@ -20,8 +25,12 @@ export const TURNOVER_DAYS = 7;
 
 export const emptyTurnover = (): Turnover => ({ days: {} });
 
-/** Add one snapshot pair's estimates to `day`, keeping the last TURNOVER_DAYS days. */
-export function addTurnover(t: Turnover, day: string, sales: ReadonlyMap<number, SaleEstimate>): Turnover {
+/**
+ * Add one snapshot pair's estimates (`dt` seconds apart) to `day`, keeping the last TURNOVER_DAYS days. A day
+ * that already has numbers but no coverage (written before `covered` existed) stays without: its rate is unknown.
+ */
+export function addTurnover(t: Turnover, day: string, sales: ReadonlyMap<number, SaleEstimate>, dt: number): Turnover {
+  const legacy = t.days[day] !== undefined && t.covered?.[day] === undefined;
   const today = { ...(t.days[day] ?? {}) };
   for (const [id, e] of sales) {
     if (e.units <= 0) continue;
@@ -29,8 +38,38 @@ export function addTurnover(t: Turnover, day: string, sales: ReadonlyMap<number,
     today[id] = [u + e.units, v + e.value];
   }
   const days = { ...t.days, [day]: today };
+  const covered = legacy ? { ...t.covered } : { ...t.covered, [day]: (t.covered?.[day] ?? 0) + dt };
   const keep = Object.keys(days).sort().slice(-TURNOVER_DAYS);
-  return { days: Object.fromEntries(keep.map((d) => [d, days[d]])) };
+  return {
+    days: Object.fromEntries(keep.map((d) => [d, days[d]])),
+    covered: Object.fromEntries(keep.filter((d) => covered[d] !== undefined).map((d) => [d, covered[d]])),
+  };
+}
+
+/**
+ * Sales of one item from the turnover file, over the last `days` UTC days up to `today` that have coverage.
+ * Null when none has. An item missing from a covered day sold nothing that day.
+ */
+export function turnoverSales(t: Turnover, id: number, today: string, days = 3): SalesSummary | null {
+  const recent = Object.keys(t.covered ?? {})
+    .filter((d) => d <= today)
+    .sort()
+    .slice(-days);
+  let covered = 0;
+  let units = 0;
+  let value = 0;
+  for (const d of recent) {
+    covered += t.covered?.[d] ?? 0;
+    const [u, v] = t.days[d]?.[id] ?? [0, 0];
+    units += u;
+    value += v;
+  }
+  if (!covered) return null;
+  return {
+    perDay: (units / covered) * 86400,
+    avgPrice: units ? Math.round(value / units) : null,
+    hours: Math.round((covered / 3600) * 10) / 10,
+  };
 }
 
 /** Copper traded per item over the whole file. */
