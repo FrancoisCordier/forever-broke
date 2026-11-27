@@ -52,7 +52,8 @@ data/
   {focusHouse}/buylist.json  # what the site loads: signals + depth + recipes per tracked item (docs/ui.md)
   {focusHouse}/book.json     # previous snapshot's listings (id, qty, price, short), every commodity (ADR-0012)
   {focusHouse}/sales/{item}.json # estimated sales per snapshot pair: t, dt, units, value; rolling 30 days
-  {focusHouse}/turnover.json # per UTC day, item → [units sold, copper traded], every commodity, last 7 days
+  {focusHouse}/turnover.json # per UTC day, item → [units sold, copper traded], every commodity, last 7 days;
+                             # covered: per day, seconds of snapshot pairs behind it (for a sales rate)
   {focusHouse}/market.json   # {t, ids}: the most traded commodities tracked on top of the watchlist (ADR-0014)
   {focusHouse}/crafts.json   # crafting profit over every priced recipe, for the Crafts page (ADR-0014 step 5)
 ```

@@ -109,8 +109,10 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
      crafter, not one crafter's take: a 1-silver margin on a bar that sells 25k a day ranks high, which is
      why the page sorts by margin too. Not given below 12 h of sales (a few hours are mostly reposts) nor for
      cooldown crafts (transmutes, Mooncloth: game knowledge, not in the data, unverified on Forever).
-   - Sales are only estimated for tracked items (watchlist and market), so most products have no sales rate
-     and rank by margin alone. Skill levels aren't in `recipes.json`.
+   - Sales rate: a tracked product's own series (3 days), else `turnover.json` over its last 3 UTC days with
+     coverage (seconds of snapshot pairs per day, `covered`, added 2026-11-27): every listed commodity gets one.
+     Days written before `covered` existed give no rate, so this starts on 2026-11-28 UTC and ranks from 12 h
+     of coverage. Skill levels aren't in `recipes.json`.
    - Measured locally on the 16:22 UTC snapshot: 496 recipes priced, 215 with a profit, 3 unpriced, 1,537
      unlisted; `crafts.json` 239 KB.
 6. **Under vendor price.** Listings below what a vendor pays: buy, sell to the NPC, guaranteed profit. Needs

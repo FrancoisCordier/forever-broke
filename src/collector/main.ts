@@ -20,6 +20,7 @@ import {
   pickMarket,
   type Turnover,
   tradedValue,
+  turnoverSales,
 } from "../shared/market.ts";
 import {
   appendSales,
@@ -173,7 +174,7 @@ async function updateSales(
   const turnoverPath = join(dir, "turnover.json");
   let turnover = await readJson<Turnover>(turnoverPath, emptyTurnover());
   if (prevItems) {
-    turnover = addTurnover(turnover, utcDate(t), estimates);
+    turnover = addTurnover(turnover, utcDate(t), estimates, dt);
     await writeJson(turnoverPath, turnover);
   }
   const marketPath = join(dir, "market.json");
@@ -450,7 +451,10 @@ async function writeBuyList(
   };
   await writeJson(join(DATA_DIR, String(focus.house), "buylist.json"), out);
 
-  // Crafting profit over every recipe, with sales per day where the product is tracked (ADR-0014 step 5).
+  // Crafting profit over every recipe (ADR-0014 step 5). Sales per day from the product's own series when it's
+  // tracked, else from turnover.json (every commodity, per UTC day).
+  const turnover = await readJson<Turnover>(join(DATA_DIR, String(focus.house), "turnover.json"), emptyTurnover());
+  const today = utcDate(focus.t);
   const crafts: Crafts = {
     house: focus.house,
     t: focus.t,
@@ -462,7 +466,7 @@ async function writeBuyList(
       },
       salesOf: (id) => {
         const s = focus.sales.get(id);
-        return s?.t.length ? summarizeSales(s, focus.t) : null;
+        return s?.t.length ? summarizeSales(s, focus.t) : turnoverSales(turnover, id, today);
       },
       meta: (id) => ({ quality: items[id]?.quality ?? null, icon: items[id]?.icon || null }),
       vendor: new Set(Object.keys(cfg.vendorPrices).map(Number)),
