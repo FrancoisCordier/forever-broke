@@ -76,7 +76,7 @@ Thresholds live in `config.yaml`.
 | Sell (stockpile) | net ≥ (1 + 30%) × unit cost **and** market ≥ (1 + 15%) × normal; resell/alt lots (ADR-0011)           | Implemented |
 | Sales estimate   | units gone from the bottom of the ladder between snapshots, minus expiries/reposts (ADR-0012)         | Implemented |
 | To resell (flip) | listed ≤ avg price paid × 0.95 / 1.15, capped at 2 days of sales, ≥ 12 h data, ≥ 5g profit (ADR-0012) | Implemented |
-| For your raids   | kit item cheap vs normal, under craft cost, or ≥ 10% under avg price paid (site, ADR-0012)            | Implemented |
+| Deals (site)     | kit BUY, stock BUY (≤ normal × 0.95 / 1.15, ≤ 7 days of sales, ≥ 5g), FLIP, SELL (ADR-0014 step 1)    | Implemented |
 | Cross-faction    | dropped for now: owner trades on house 110 only                                                       | Not planned |
 
 **Raid relevance** (`src/collector/raid.ts`): an item is a raid consumable if it's on the watchlist and its item

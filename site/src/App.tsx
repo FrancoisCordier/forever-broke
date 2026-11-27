@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { HashRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout.tsx";
 import { ToastProvider } from "./components/Toast.tsx";
-import { BuyListPage } from "./pages/BuyListPage.tsx";
+import { DealsPage } from "./pages/DealsPage.tsx";
 import { KitPage } from "./pages/KitPage.tsx";
 import { RaidPrepPage } from "./pages/RaidPrepPage.tsx";
 import { StockpilePage } from "./pages/StockpilePage.tsx";
@@ -17,7 +17,7 @@ export function App() {
       <ToastProvider>
         <Layout>
           <Routes>
-            <Route path="/" element={<BuyListPage />} />
+            <Route path="/" element={<DealsPage />} />
             <Route path="/raid" element={<RaidPrepPage />} />
             <Route path="/kit" element={<KitPage />} />
             <Route path="/stockpile" element={<StockpilePage />} />
@@ -29,7 +29,7 @@ export function App() {
                 </Suspense>
               }
             />
-            <Route path="*" element={<BuyListPage />} />
+            <Route path="*" element={<DealsPage />} />
           </Routes>
         </Layout>
       </ToastProvider>

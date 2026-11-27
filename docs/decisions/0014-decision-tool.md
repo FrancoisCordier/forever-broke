@@ -1,7 +1,7 @@
 # ADR-0014: A fast decision tool: Deals, class kits, custom kits, stars
 
-Status: **Steps 2–4 Accepted** (owner, 2026-11-27: class picker, kits for every spec with a source, custom
-kits, stars). The rest **Proposed**.
+Status: **Steps 1–4 Accepted** (owner, 2026-11-27: Deals page, class picker, kits for every spec with a source,
+custom kits, stars). The rest **Proposed**.
 
 ## Context
 
@@ -30,6 +30,16 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
    data, units listed). Sorted by expected profit within the budget. Filters: verdict, % off (20/30/50/70),
    sells per day (1+/5+/20+), starred only, my kit only. Buy list, For your raids and Resell become filters
    of it; Raid prep's per-group tables go (the item page covers one item); "Craft or buy?" moves to step 4.
+   **As built (2026-11-27):**
+   - BUY for your kit buys the nights' need up to the best limit of its reasons (cheap: the collector's
+     `upTo`; under craft cost: reagents × 0.9; under what buyers paid: × 0.9 with ≥ 12 h of data), and shows
+     what that **saves**, not a profit.
+   - BUY to stock (any other good buy that isn't a flip) resells at normal, so it follows the flip rule against
+     normal instead of what buyers paid: units ≤ normal × 0.95 / 1.15, at most 7 days of sales, ≥ 5g profit.
+     Under craft cost alone (at its normal price) is never a stock buy: it can't profit.
+   - The budget is **per deal** (one number, default 800g, 0 = none), not a total spread over the list.
+   - Raid prep stays as the browse-all page with its tables, since Deals only shows rows that act. The Buy
+     list's Under craft cost table and Watch table are gone; under craft cost lives on as a BUY reason.
 2. **Class picker and kits.**
    - Kits are grouped by class, then spec: the My kit page shows the class (with its icon) and a spec choice;
      each spec has a default kit, "Raid consumables", with raid nights as today. Kit ids stay `class_spec`.
