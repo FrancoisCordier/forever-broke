@@ -133,6 +133,10 @@ export interface GoodBuy {
   upTo: number;
   /** Units listed at ≤ upTo. */
   units: number;
+  /** The biggest of the discounts, e.g. −0.24. */
+  discount: number;
+  /** The price that discount is measured against (normal, reagent cost or average paid). */
+  ref: number;
 }
 
 /**
@@ -141,21 +145,26 @@ export interface GoodBuy {
  */
 export function goodBuy(x: BuyListItem, belowCraftPct: number): GoodBuy | null {
   if (x.now === null) return null;
+  const now = x.now;
   const reasons: string[] = [];
   let upTo = 0;
-  if (x.cheap && x.upTo !== null) {
-    reasons.push(`${formatPct(x.change)} vs normal`);
-    upTo = Math.max(upTo, x.upTo);
-  }
-  if (x.belowCraft && x.craftCost) {
-    reasons.push(`${formatPct(x.craftChange)} vs reagents`);
-    upTo = Math.max(upTo, Math.floor(x.craftCost * (1 - belowCraftPct / 100)));
-  }
+  let discount = 0;
+  let ref = now;
+  const reason = (vs: number, text: string, limit: number) => {
+    const d = now / vs - 1;
+    reasons.push(`${formatPct(d)} ${text}`);
+    upTo = Math.max(upTo, limit);
+    if (d < discount) {
+      discount = d;
+      ref = vs;
+    }
+  };
+  if (x.cheap && x.upTo !== null && x.normal) reason(x.normal, "vs normal", x.upTo);
+  if (x.belowCraft && x.craftCost)
+    reason(x.craftCost, "vs reagents", Math.floor(x.craftCost * (1 - belowCraftPct / 100)));
   const paid = x.sales?.avgPrice;
-  if (paid && (x.sales?.hours ?? 0) >= MIN_SALES_HOURS && x.now <= paid * (1 - UNDER_PAID_PCT / 100)) {
-    reasons.push(`${formatPct(x.now / paid - 1)} vs what buyers paid`);
-    upTo = Math.max(upTo, Math.floor(paid * (1 - UNDER_PAID_PCT / 100)));
-  }
+  if (paid && (x.sales?.hours ?? 0) >= MIN_SALES_HOURS && now <= paid * (1 - UNDER_PAID_PCT / 100))
+    reason(paid, "vs what buyers paid", Math.floor(paid * (1 - UNDER_PAID_PCT / 100)));
   if (reasons.length === 0) return null;
-  return { reasons, upTo, units: buyable(x.ladder, upTo).units };
+  return { reasons, upTo, units: buyable(x.ladder, upTo).units, discount, ref };
 }

@@ -49,7 +49,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </NavLink>
           <nav aria-label="Main" className="flex flex-wrap gap-1">
             <NavLink to="/" end className={navClass}>
-              Buy list
+              Deals
             </NavLink>
             <NavLink to="/kit" className={navClass}>
               My kit

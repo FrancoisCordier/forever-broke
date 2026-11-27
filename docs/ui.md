@@ -12,47 +12,55 @@ Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to t
    The owner makes the bet.
 4. **Built for copy/paste into the WoW AH**: one click copies the exact item name for the AH search box.
 
-## Home: "Buy list"
+## Home: "Deals" (ADR-0014 step 1)
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│ Raids open in 13d 6h          house 110 · data 23 min old  │
-├────────────────────────────────────────────────────────────┤
-│ BUY NOW (cheap + raid demand)                               │
-│ ┌────────────────────────────────────────────────────────┐ │
-│ │ Death Lotus                         [⧉ Copy name]       │ │
-│ │ 5g 40s now · normal 6g 10s · −11%   ▁▂▃▅▄▃▂▁ 7d         │ │
-│ │ Buy up to 4g 88s → 37 units available (~176g)           │ │
-│ │ 🏷 Raid: 4 Forever flasks   ↓ supply −18% vs 3d          │ │
-│ └────────────────────────────────────────────────────────┘ │
-│ ┌ Gromsblood … ┐                                           │
-│                                                            │
-│ CHEAP, NO RAID LINK (collapsed)                            │
-│ WATCH: raid items at normal price (collapsed)              │
-└────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│ Deals                                              Budget per deal [800]  [⧉ Copy names] │
+│ 4 to buy, 2 to flip and 1 to sell. Best: Flask of Chromatic Resistance, +232g profit.  │
+│ Show [All 7|Buy 4|Flip 2|Sell 1]  Off [Any|20+|30+|50+|70+]  Sells/day [Any|1+|5+|20+] │
+│ [Item name]  [☆ Starred only]  [My kit only]                                          │
+├───────────────────────────────────────────────────────────────────────────────────────┤
+│ Item          Verdict · why          Profit   Do                      Sold/day  Days │
+│ ☆ Flask of…   FLIP −54% vs paid      +232g    Buy 19 up to 22g 57s    9.6       2.0  │
+│                                      after    ≈ 262g · resell at 27g  70 listed      │
+│ ☆ Elixir of…  BUY −11% vs reagents   +3g      Buy 24 up to 83s 81c    1,245     —    │
+│ Your kit ·                           saved    ≈ 20g · for your raids                 │
+└───────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Sections**, in order:
-  1. _For your raids_ (ADR-0012): items of the kit chosen on My kit that are a good buy now (cheap vs normal,
-     under craft cost, or under what buyers paid). Need for the chosen nights, buy-up-to price, how many are listed
-     under it and what they cost.
-  2. _To resell_ (ADR-0012): cards with buy N up to X, relist at the average price paid, sells ~N/day, profit after
-     the cut. Until 12 h of sales data exist, a note says how many hours there are so far.
-  3. _Cheap raid items_: cheap (ADR-0007) **and** raid-relevant (watchlist groups flasks/potions/elixirs/forever_raid/herbs…).
-  4. _Under craft cost_ (ADR-0010): raid consumables selling ≥ 10% under their reagents' cost. Table with the recipe.
-  5. _Watch_: raid items at normal price.
-  6. _Cheap, no raid link_ (collapsed).
+One ranked list replaces the old Buy list sections (For your raids, To resell, Cheap raid items, Under craft
+cost). Logic is in `site/src/lib/deals.ts` (pure, tested in `test/deals.test.ts`). Each row is one of:
+
+- **BUY, for your kit**: an item of the kit chosen on My kit that is a good buy now (cheap vs normal, ≥ 10% under
+  its reagents' cost, or ≥ 10% under what buyers paid with ≥ 12 h of sales data). Buys what the chosen nights
+  need, up to the best of those limits; the value is what that **saves** vs the reference price.
+- **BUY, to stock** (not in the kit, not a flip): the same reasons, but to resell at its normal price. Only
+  units that beat normal × 0.95 by 15% (`STOCK_MARGIN`, as the flip margin), at most 7 days of sales
+  (`STOCK_DAYS`), at least 5g profit after the cut (`MIN_PROFIT`, as `flipMinProfitGold`). Skipped when nothing
+  sold over ≥ 12 h of data.
+- **FLIP**: the collector's `resale` (ADR-0012), cut to the budget.
+- **SELL**: a stockpile lot that meets both sell rules (ADR-0011), with its P/L.
+
+A kit item that is also a flip gets both rows. Vendor and soulbound items never appear.
+
+- **Columns**: item (with kit slot or lot date), verdict and reasons (discount vs normal / reagents / what buyers
+  paid), profit (after the cut) or saved, what to do (buy N up to X ≈ cost · resell at Y; sell N at the market),
+  sold per day with units listed, days to sell (units ÷ sold per day), 7-day sparkline with hours of sales data
+  (amber under 12 h), copy name (icon). Sortable on profit, discount, sold per day, days to sell and name;
+  starred items come first on the default profit sort.
+- **Filters** (kept in localStorage): verdict with counts, % off (hides SELL rows), sells per day, item name,
+  starred only, my kit only. "Clear" resets them.
+- **Budget per deal** (default 800g, 0 = no limit) caps each row, not the total: units are taken cheapest first
+  until the price limit or the budget; "budget limit" shows when it cut a row.
+- **Copy names** copies every listed name, one per line. A notice says when "normal" has under 7 days of history
+  or sales data under 12 h.
 - **Item page** also shows "Sold per day (estimate)" with the average price paid and hours of data.
-- **Card**: market vs normal, discount, a 7-day sparkline, and why the item is flagged (badges).
-  "Buy up to" price and **units available below it** come from order-book depth (see "Collector changes").
 - **Copy name** copies the exact English item name (what the AH search box expects). A toast confirms.
-- **Copy all** at the top copies every _Buy now_ name, one per line. That makes it easy to paste into a list, or into an addon later.
-- Budget field (default 800g): cards show how many units the budget buys. Nothing more clever than that.
 - **Vendor items are hidden everywhere** (owner, 2026-11-25): anything in `config.yaml` → `vendorPrices`
   (Crystal Vial, Imbued Vial). Their AH price is capped by the vendor, so they're noise. They still count in craft
   costs (at the cheaper of AH and vendor price). To hide another vendor item, add it to `vendorPrices`.
-- **Lists have search, a group filter and sortable columns**: the Watch table and Raid prep (one filter for the
-  whole page). Buy-now cards have a sort menu (biggest discount, cheapest to buy out, most units, name).
+- Raid prep keeps the browse-everything view (every watchlist group, with search, group filter and sortable columns).
 
 ## Other pages
 
@@ -65,8 +73,8 @@ Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to t
   "Customise" copies the kit into the viewer's own (★ in the spec row): rename, remove a slot or an option, add
   a watchlist item as a new slot or an alternative, "Copy link" to share it (`#/kit?share=…` offers "Add to my
   kits"), delete. Choices and custom kits are kept in localStorage. "Copy shopping list" copies the item names.
-- **Stars** (ADR-0014): a ☆ before every item name (and on the item page) follows it; Raid prep and the Buy list's
-  watch table have a "Starred only" filter. Kept in localStorage, synced between open tabs.
+- **Stars** (ADR-0014): a ☆ before every item name (and on the item page) follows it; Deals and Raid prep
+  have a "Starred only" filter, and Deals shows starred items first. Kept in localStorage, synced between open tabs.
 - **Raid prep**: every watchlist group with now vs normal and the countdown. Craft table: flask cost from reagents vs flask price, when one is listed.
 - **Stockpile** (`#/stockpile`, ADR-0011): add a lot (any item seen on the AH, qty, price paid typed as `11g 55s`
   or `11.55`, why: to resell / for my raids / alt's levelling mats). Header: paid, worth after the 5% cut, P/L.

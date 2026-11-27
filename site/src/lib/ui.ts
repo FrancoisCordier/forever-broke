@@ -31,7 +31,7 @@ export const stats3 =
   "grid flex-auto grid-cols-3 gap-4 [&_dd]:mt-0.5 [&_dd]:text-[17px] [&_dd]:font-bold [&_dt]:text-xs [&_dt]:text-muted";
 
 /** Tables: a scrolling frame and the table itself. Cells don't wrap unless they hold a `note`. */
-export const tableWrap = "overflow-x-auto rounded-card border border-line bg-surface";
+export const tableWrap = "relative overflow-x-auto rounded-card border border-line bg-surface";
 const cells =
   "w-full border-collapse [&_td]:border-b [&_td]:border-line-soft [&_td]:px-3.5 [&_td]:py-2 [&_td]:align-middle [&_td]:whitespace-nowrap [&_th]:border-b [&_th]:border-line [&_th]:px-3.5 [&_th]:py-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-medium [&_th]:whitespace-nowrap [&_th]:text-muted [&_tbody_tr:last-child_td]:border-b-0";
 export const table = `min-w-[720px] ${cells}`;
@@ -72,5 +72,6 @@ export const tag = {
   raid: `${TAG} bg-raid-bg font-semibold text-raid`,
   cheap: `${TAG} bg-accent/14 font-bold text-accent`,
   sell: `${TAG} bg-mint/16 font-bold text-sell`,
+  flip: `${TAG} bg-gold/14 font-bold text-gold`,
 } as const;
 export type TagKind = keyof typeof tag;
