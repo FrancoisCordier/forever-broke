@@ -54,6 +54,7 @@ data/
   {focusHouse}/sales/{item}.json # estimated sales per snapshot pair: t, dt, units, value; rolling 30 days
   {focusHouse}/turnover.json # per UTC day, item → [units sold, copper traded], every commodity, last 7 days
   {focusHouse}/market.json   # {t, ids}: the most traded commodities tracked on top of the watchlist (ADR-0014)
+  {focusHouse}/crafts.json   # crafting profit over every priced recipe, for the Crafts page (ADR-0014 step 5)
 ```
 
 Compact JSON: columnar arrays (`{"t":[...],"min":[...],...}`) rather than an array of objects.

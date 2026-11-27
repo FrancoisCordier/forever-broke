@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import { valueLot } from "../../../src/shared/stockpile.ts";
 import type { ItemMeta, Latest } from "../../../src/shared/types.ts";
 import { CopyButton } from "../components/CopyButton.tsx";
 import { type ItemLike, ItemName } from "../components/ItemName.tsx";
+import { Segments } from "../components/Segments.tsx";
 import { SortHeader } from "../components/SortHeader.tsx";
 import { Sparkline } from "../components/Sparkline.tsx";
 import { Status } from "../components/Status.tsx";
@@ -21,11 +22,12 @@ import {
   starredFirst,
   type Verdict,
 } from "../lib/deals.ts";
-import { formatGold, formatPct, formatWholeGold } from "../lib/format.ts";
+import { daysText, formatGold, formatPct, formatWholeGold, perDayText } from "../lib/format.ts";
 import { pickKit, useKitPrefs, withClass } from "../lib/kit.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
 import { useStars } from "../lib/stars.ts";
 import { useLots, useMarkets } from "../lib/stockpile.ts";
+import { useStored } from "../lib/stored.ts";
 import {
   btn,
   empty,
@@ -38,7 +40,6 @@ import {
   numberInput,
   pageFoot,
   pageHead,
-  segment,
   subline,
   tableNarrow,
   tableWrap,
@@ -59,67 +60,9 @@ const VERDICT_TAG: Record<Verdict, string> = { buy: tag.cheap, flip: tag.flip, s
 const OFF = [0, 20, 30, 50, 70];
 const PER_DAY = [0, 1, 5, 20];
 
-/** A legend on the same line as its buttons (as on My kit): floated, since a legend ignores the fieldset's flex. */
-const LEGEND = "float-left mr-1.5 text-xs font-medium text-muted";
-const FIELDSET = "m-0 flex flex-wrap items-center gap-1.5 border-0 p-0";
-
 type SortKey = "value" | "discount" | "perDay" | "days" | "name";
 
-/** A value kept in this browser; storage may be blocked (private window), then it lasts until the tab closes. */
-function useStored<T>(key: string, initial: T, parse: (raw: string) => T): [T, (v: T) => void] {
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw === null ? initial : parse(raw);
-    } catch {
-      return initial;
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
-    } catch {
-      // storage blocked
-    }
-  }, [key, value]);
-  return [value, setValue];
-}
-
 const parseFilter = (raw: string): DealFilter => ({ ...ALL_DEALS, ...JSON.parse(raw), query: "" });
-
-const perDayText = (n: number | null) =>
-  n === null ? "—" : n >= 10 ? Math.round(n).toLocaleString("en-GB") : n.toFixed(1);
-const daysText = (d: number | null) =>
-  d === null ? "—" : d < 1 ? "< 1 day" : d < 10 ? `${d.toFixed(1)} days` : `${Math.round(d)} days`;
-
-function Segments<T extends string | number>({
-  legend,
-  options,
-  value,
-  onChange,
-}: {
-  legend: string;
-  options: [T, string][];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <fieldset className={FIELDSET}>
-      <legend className={LEGEND}>{legend}</legend>
-      {options.map(([v, text]) => (
-        <button
-          key={String(v)}
-          type="button"
-          aria-pressed={v === value}
-          className={segment}
-          onClick={() => onChange(v)}
-        >
-          {text}
-        </button>
-      ))}
-    </fieldset>
-  );
-}
 
 function Filters({
   value,

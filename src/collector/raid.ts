@@ -4,17 +4,9 @@
  * An item is raid-relevant if it is a raid product, or a reagent in a recipe that makes one.
  */
 import { readFile } from "node:fs/promises";
+import { isLiveRecipe, type Recipe } from "../shared/crafts.ts";
 import type { CraftRecipe, Use } from "../shared/signals.ts";
 import type { ItemMeta } from "../shared/types.ts";
-
-interface Recipe {
-  name: string;
-  profession: string;
-  category: string;
-  item: { id: number; name: string } | null;
-  makes: number;
-  reagents: { id: number; name: string; qty: number }[];
-}
 
 export interface RaidInfo {
   /** The item itself is a raid consumable. */
@@ -42,11 +34,9 @@ export function raidInfo(
   const out = new Map<number, RaidInfo>();
   for (const id of watch) out.set(id, { product: products.has(id), uses: [], recipe: null });
   for (const r of recipes) {
-    // Season of Discovery recipes exist in the data but nothing shows they're live in Forever,
-    // and some items are literally named "… NYI" (not yet implemented).
+    if (!isLiveRecipe(r)) continue;
     // Enchants have no crafted item: use the recipe name.
     const name = r.item?.name ?? r.name;
-    if (/season of discovery/i.test(r.category) || /\bNYI\b/.test(name)) continue;
     const raid = r.item !== null && products.has(r.item.id);
     const crafted = r.item ? out.get(r.item.id) : undefined;
     if (crafted && !crafted.recipe) {

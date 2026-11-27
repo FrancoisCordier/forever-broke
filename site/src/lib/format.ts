@@ -8,6 +8,14 @@ export function formatPct(x: number | null): string {
   return `${n > 0 ? "+" : "−"}${Math.abs(n)}%`;
 }
 
+/** Units sold per day: "—", "0.4", "12", "1,245". */
+export const perDayText = (n: number | null) =>
+  n === null ? "—" : n >= 10 ? Math.round(n).toLocaleString("en-GB") : n.toFixed(1);
+
+/** Days to sell: "—", "< 1 day", "2.5 days", "14 days". */
+export const daysText = (d: number | null) =>
+  d === null ? "—" : d < 1 ? "< 1 day" : d < 10 ? `${d.toFixed(1)} days` : `${Math.round(d)} days`;
+
 /** Whole gold for totals: 1794800 → "179g". */
 export function formatWholeGold(copper: number): string {
   return `${Math.round(copper / 10000).toLocaleString("en-GB")}g`;

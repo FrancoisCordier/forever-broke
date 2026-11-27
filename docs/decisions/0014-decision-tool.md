@@ -81,7 +81,7 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
 5. **Whole-market scan on house 110.** Hourly points and listings for the ~200 commodities that sell the most
    (by the daily files), on top of the watchlist, so Deals, custom kits and stars aren't limited to what we
    thought of. Plus crafting profit per day over all recipes, filtered on "every reagent priced".
-   **As built (2026-11-27), market scan only; crafting profit is the next PR:**
+   **As built (2026-11-27), market scan (crafting profit below):**
    - "Sell the most" is measured, not guessed from the daily files (which show supply, not sales): the book
      keeps every commodity's listings on house 110, so the sales estimate (ADR-0012) runs on all of them.
      `turnover.json` sums it per day; the market set is the `marketItems` (200) with the most **gold traded**
@@ -97,6 +97,22 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
      Crystal, Arcanite Converter, Mithril Bar, Arcanite Bar, Deeprock Salt, Large Brilliant Shard, Steel Bar,
      Mageweave, Vision Dust, Runecloth. The 200th traded ~3g in the hour.
    - History and sales start the day an item is first tracked; nothing is backfilled.
+
+   **As built (2026-11-27), crafting profit** (`src/shared/crafts.ts`, `{focusHouse}/crafts.json`, `#/crafts`):
+   - Every live recipe (`recipes.json` without Season of Discovery and NYI) whose product is a commodity
+     listed on house 110 and whose reagents all have a price: p10 from `latest.json`, or the vendor price
+     when lower. Enchants (no product), vendor-sold products, unlisted products and recipes with an unpriced
+     reagent are left out and counted.
+   - Cost per unit made; sells at the product's p10, or what buyers paid if lower (with ≥ 12 h of sales, as
+     flips). Margin after the 5% cut.
+   - **Profit per day = margin × units the whole AH sells a day.** That's a ceiling shared with every other
+     crafter, not one crafter's take: a 1-silver margin on a bar that sells 25k a day ranks high, which is
+     why the page sorts by margin too. Not given below 12 h of sales (a few hours are mostly reposts) nor for
+     cooldown crafts (transmutes, Mooncloth: game knowledge, not in the data, unverified on Forever).
+   - Sales are only estimated for tracked items (watchlist and market), so most products have no sales rate
+     and rank by margin alone. Skill levels aren't in `recipes.json`.
+   - Measured locally on the 16:22 UTC snapshot: 496 recipes priced, 215 with a profit, 3 unpriced, 1,537
+     unlisted; `crafts.json` 239 KB.
 6. **Under vendor price.** Listings below what a vendor pays: buy, sell to the NPC, guaranteed profit. Needs
    the vendor sell price from the item API, not yet verified on Forever (new api-notes entry first).
 7. **Later:** movers (24 h / 7 d, with the noise floor), price by hour of day (for raid-night peaks), posting

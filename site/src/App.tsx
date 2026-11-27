@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { HashRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout.tsx";
 import { ToastProvider } from "./components/Toast.tsx";
+import { CraftsPage } from "./pages/CraftsPage.tsx";
 import { DealsPage } from "./pages/DealsPage.tsx";
 import { KitPage } from "./pages/KitPage.tsx";
 import { RaidPrepPage } from "./pages/RaidPrepPage.tsx";
@@ -18,6 +19,7 @@ export function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<DealsPage />} />
+            <Route path="/crafts" element={<CraftsPage />} />
             <Route path="/raid" element={<RaidPrepPage />} />
             <Route path="/kit" element={<KitPage />} />
             <Route path="/stockpile" element={<StockpilePage />} />

@@ -74,6 +74,12 @@ A kit item that is also a flip gets both rows. Vendor and soulbound items never 
   kits"), delete. Choices and custom kits are kept in localStorage. "Copy shopping list" copies the item names.
 - **Stars** (ADR-0014): a ☆ before every item name (and on the item page) follows it; Deals and Raid prep
   have a "Starred only" filter, and Deals shows starred items first. Kept in localStorage, synced between open tabs.
+- **Crafts** (`#/crafts`, ADR-0014 step 5, loads `crafts.json`): every recipe priced from the AH, ranked by
+  profit per day (margin × units the whole AH sells a day, a ceiling). One row per recipe: product with the
+  recipe name under it, reagents with their unit price, profession, cost per unit, sells at, margin after the
+  cut (and %), sold per day (amber, not ranked, under 12 h of sales) with units listed, profit per day or a
+  "Cooldown" tag. Filters: profession, sells/day, item or recipe name, profitable only (on by default),
+  starred only; kept in localStorage. The first 100 rows, then "Show all".
 - **Raid prep**: every watchlist group with now vs normal and the countdown. Craft table: flask cost from reagents vs flask price, when one is listed.
 - **Stockpile** (`#/stockpile`, ADR-0011): add a lot (any item seen on the AH, qty, price paid typed as `11g 55s`
   or `11.55`, why: to resell / for my raids / alt's levelling mats). Header: paid, worth after the 5% cut, P/L.
