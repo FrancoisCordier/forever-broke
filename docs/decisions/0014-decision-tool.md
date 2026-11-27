@@ -90,8 +90,12 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
      changes. A dropped item keeps its files; they just stop getting points.
    - Market items get the watchlist's tracking on house 110 only (hourly, ladder, sales, buy list in group
      `market`), so Deals, custom kits and stars see them. Raid prep stays watchlist only.
-   - Measured on the 15:22 UTC snapshot (124,832 listings, 1,379 commodities): `book.json` 2.6 MB
-     (0.74 MB gzipped, up from 0.18 MB), collector run on house 110 unchanged at a few seconds.
+   - Measured locally on the 15:22 → 16:22 UTC snapshots (~125k listings, 1,380 commodities, 462 with sales,
+     ~9,560g traded in that hour): `book.json` 2.6 MB (0.74 MB gzipped, up from 0.18 MB), `buylist.json`
+     361 KB (71 KB gzipped, up from 205 KB), `turnover.json` 9 KB. The first run with a market set fetches
+     the 200 new items' metadata once (~16 s); after that a run stays at a few seconds. Top picks: Arcane
+     Crystal, Arcanite Converter, Mithril Bar, Arcanite Bar, Deeprock Salt, Large Brilliant Shard, Steel Bar,
+     Mageweave, Vision Dust, Runecloth. The 200th traded ~3g in the hour.
    - History and sales start the day an item is first tracked; nothing is backfilled.
 6. **Under vendor price.** Listings below what a vendor pays: buy, sell to the NPC, guaranteed profit. Needs
    the vendor sell price from the item API, not yet verified on Forever (new api-notes entry first).
