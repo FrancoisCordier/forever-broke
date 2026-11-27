@@ -14,7 +14,7 @@ Design decisions and verified API facts live in [`docs/`](docs/README.md), which
 2. **Local**: `pnpm install`, then `cp .env.example .env` and fill in the client ID and secret.
 3. **GitHub secrets**: in the repo's _Settings → Secrets and variables → Actions_, add
    `BNET_CLIENT_ID` and `BNET_CLIENT_SECRET`.
-4. The `collect` workflow runs twice an hour (`:29`, `:54`, just after the API refreshes at ~:22) and force-pushes the aggregated data to the
+4. The `collect` workflow runs twice an hour (`:24`, `:39`, just after the API refreshes at ~:22) and force-pushes the aggregated data to the
    `data` branch. Run it by hand from the Actions tab (_collect → Run workflow_).
    GitHub's own `schedule` drops most runs, so a Cloudflare Worker starts it on time: deploy it once with
    [`worker/README.md`](worker/README.md) (ADR-0009).

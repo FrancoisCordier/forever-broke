@@ -7,8 +7,9 @@
   "compatibility_date": "2026-11-23",
   "workers_dev": false,
   "triggers": {
-    // UTC. API snapshots refresh at ~:22: :29 catches it, :54 is a safety net. The only trigger of collect.yml.
-    "crons": ["29 * * * *", "54 * * * *"]
+    // UTC. Every house's snapshot is stamped :21:43–:22:18 (A12): :24 gets it as early as possible, :39 is a
+    // safety net for a late one (an unchanged snapshot is a 304). The only trigger of collect.yml.
+    "crons": ["24 * * * *", "39 * * * *"]
   },
   "observability": { "enabled": true }
 }

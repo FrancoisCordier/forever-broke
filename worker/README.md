@@ -1,6 +1,6 @@
 # forever-broke-trigger
 
-Cloudflare Worker that starts the `collect` workflow at `:29` and `:54` UTC through `workflow_dispatch`,
+Cloudflare Worker that starts the `collect` workflow at `:24` and `:39` UTC through `workflow_dispatch`,
 because GitHub's own `schedule` drops most runs ([ADR-0009](../docs/decisions/0009-external-cron-trigger.md)).
 
 It's a package in the root pnpm workspace: a plain `pnpm install` at the root installs `wrangler` too,
@@ -22,13 +22,13 @@ while CI installs only the root package. All commands below run **from the repo 
    ```sh
    pnpm install
    pnpm worker:login    # opens the browser
-   pnpm worker:deploy   # should end by listing the schedules 29 * * * * and 54 * * * *
+   pnpm worker:deploy   # should end by listing the schedules 24 * * * * and 39 * * * *
    pnpm worker:secret   # paste the GitHub token when asked
    ```
 
 ## Checking it works
 
-- Actions tab: a `collect` run appears within a minute of `:29` / `:54`, labelled "Manually run"
+- Actions tab: a `collect` run appears within a minute of `:24` / `:39`, labelled "Manually run"
   (first one: 2026-11-26 10:29:45Z, 45 s after the slot).
 - `pnpm worker:logs` streams the Worker's logs live; a failed dispatch logs `workflow_dispatch failed: <status> …`.
   The Cloudflare dashboard (_Workers → forever-broke-trigger → Logs_) shows past runs.

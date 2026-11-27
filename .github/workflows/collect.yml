@@ -1,8 +1,8 @@
 name: collect
 
 on:
-  # The only trigger: the Cloudflare Worker in worker/ calls workflow_dispatch at :29/:54 (ADR-0009).
-  # API snapshots refresh at ~:22 (A12): :29 catches it, :54 is a safety net (an unchanged snapshot is a 304).
+  # The only trigger: the Cloudflare Worker in worker/ calls workflow_dispatch at :24/:39 (ADR-0009).
+  # API snapshots refresh at ~:22 (A12): :24 catches it, :39 is a safety net (an unchanged snapshot is a 304).
   # No GitHub schedule: its duplicate runs only spent free Actions minutes (owner, 2026-11-27).
   workflow_dispatch:
 

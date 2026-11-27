@@ -5,7 +5,7 @@ interface Ctx {
   waitUntil(promise: Promise<unknown>): void;
 }
 
-// Cron Triggers are in wrangler.jsonc (:29 and :54, see ADR-0009). No fetch handler: the Worker has no URL to call.
+// Cron Triggers are in wrangler.jsonc (:24 and :39, see ADR-0009). No fetch handler: the Worker has no URL to call.
 export default {
   scheduled(_controller: unknown, env: TriggerEnv, ctx: Ctx): void {
     ctx.waitUntil(triggerCollect(env));

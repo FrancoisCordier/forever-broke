@@ -1,6 +1,7 @@
 # ADR-0009: Cloudflare Worker cron starts the collector
 
-Status: **Accepted** (2026-11-26). Amended 2026-11-27: no GitHub `schedule` backup.
+Status: **Accepted** (2026-11-26). Amended 2026-11-27 (owner): no GitHub `schedule` backup; Worker slots
+moved from `:29`/`:54` to `:24`/`:39`, to get each snapshot as early as possible.
 
 ## Context
 
@@ -16,7 +17,7 @@ or a Cloudflare Worker with a Cron Trigger (code in the repo).
 
 ## Decision
 
-- A **Cloudflare Worker** (`worker/`, free plan) with Cron Triggers at `:29` and `:54` UTC calls
+- A **Cloudflare Worker** (`worker/`, free plan) with Cron Triggers at `:24` and `:39` UTC (first `:29`/`:54`) calls
   `POST /repos/FrancoisCordier/forever-broke/actions/workflows/collect.yml/dispatches` on `main`.
 - Auth: a **fine-grained PAT** scoped to this repo only, permission _Actions: Read and write_, stored as the
   Worker secret `GITHUB_TOKEN`.
