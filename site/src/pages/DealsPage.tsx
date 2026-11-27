@@ -13,16 +13,15 @@ import {
   ALL_DEALS,
   type Deal,
   type DealFilter,
+  FLIP_DAYS,
   filterDeals,
   findDeals,
   MIN_PROFIT,
   MIN_SALES_HOURS,
-  STOCK_DAYS,
-  STOCK_MARGIN,
   starredFirst,
   type Verdict,
 } from "../lib/deals.ts";
-import { formatGold, formatWholeGold } from "../lib/format.ts";
+import { formatGold, formatPct, formatWholeGold } from "../lib/format.ts";
 import { pickKit, useKitPrefs, withClass } from "../lib/kit.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
 import { useStars } from "../lib/stars.ts";
@@ -229,7 +228,13 @@ function DealRow({ d, item }: { d: Deal; item: ItemLike }) {
           {d.value > 0 ? "+" : ""}
           {formatWholeGold(d.value)}
         </strong>
-        <span className={subline}>{d.valueKind === "saves" ? "saved now" : "after the cut"}</span>
+        <span className={subline}>
+          {d.valueKind === "saves"
+            ? "saved now"
+            : d.verdict === "flip" && d.cost > 0
+              ? `${formatPct(d.value / d.cost)} return`
+              : "after the cut"}
+        </span>
       </td>
       <td>
         {d.verdict === "sell" ? (
@@ -444,15 +449,19 @@ export function DealsPage() {
 
       <footer className={pageFoot}>
         <span>
-          <strong>Buy</strong>: cheap vs its normal price, under what its reagents cost, or 10% under what buyers paid.
-          For your kit (<Link to="/kit">My kit</Link>) it buys what your nights need and shows what that saves;
-          otherwise it buys to stock and resell at the normal price: only units that beat it by {STOCK_MARGIN * 100}%
-          after the 5% cut, at most {STOCK_DAYS} days of sales, at least {formatWholeGold(MIN_PROFIT)} profit.
+          <strong>Buy</strong>: an item of your kit (<Link to="/kit">My kit</Link>) that is cheap vs its normal price,
+          under what its reagents cost, or 10% under what buyers paid. It buys what your nights need and shows what that
+          saves.
         </span>
         <span>
-          <strong>Flip</strong>: listed under what buyers paid over the last 3 days, relist at that price, at most 2
-          days of sales. <strong>Sell</strong>: a <Link to="/stockpile">stockpile</Link> lot {opt.sellAboveCostPct}%
-          over what you paid after the cut, with the market {opt.sellAboveNormalPct}% over normal.
+          <strong>Flip</strong>: anything bought to resell, whatever the margin. It relists at what buyers paid (or
+          normal, if lower), and lower still if more is listed under that than sells in {FLIP_DAYS} days. It buys every
+          unit that profits after the 5% cut. Days to sell counts everything listed under the relist price, since yours
+          sell last. Needs {MIN_SALES_HOURS} h of sales data; at least {formatWholeGold(MIN_PROFIT)} profit.
+        </span>
+        <span>
+          <strong>Sell</strong>: a <Link to="/stockpile">stockpile</Link> lot {opt.sellAboveCostPct}% over what you paid
+          after the cut, with the market {opt.sellAboveNormalPct}% over normal.
         </span>
         <span>
           <strong>Budget</strong> caps each deal, not the total; 0 = no limit. <strong>Normal</strong> = median of the

@@ -1,8 +1,7 @@
 /**
  * Deals (ADR-0014 step 1): one ranked list of what to do on the AH right now.
- *   BUY  = a good buy (cheap vs normal, under reagent cost, under what buyers paid): for your kit (what you need),
- *          or to stock and resell at its normal price later (must profit after the cut).
- *   FLIP = the resell rule of ADR-0012 (buy under what buyers pay, relist at it).
+ *   BUY  = a good buy for your kit (cheap vs normal, under reagent cost, under what buyers paid): what you need.
+ *   FLIP = anything bought to resell (ADR-0015): see planFlip.
  *   SELL = a stockpile lot that meets both sell rules of ADR-0011.
  * Pure functions: the page feeds them the buy list, the chosen kit and the valued lots.
  */
@@ -14,14 +13,12 @@ import { goodBuy, type KitPrefs, kitRows } from "./kit.ts";
 
 export type Verdict = "buy" | "flip" | "sell";
 
-/** Never suggest stocking more than this many days of sales (when sales are known). */
-export const STOCK_DAYS = 7;
-/** Hours of sales data before "nothing sold" is believed (same as config.yaml flipMinSalesHours). */
+/** Hours of sales data before a sales rate is trusted (same as config.yaml flipMinSalesHours). */
 export const MIN_SALES_HOURS = 12;
-/** Stocking to resell at normal: each unit must beat its price by this much after the cut (as flipMarginPct). */
-export const STOCK_MARGIN = 0.15;
-/** Not worth the trip below this profit, in copper (as flipMinProfitGold). */
-export const MIN_PROFIT = 5 * 10000;
+/** A flip must sell out within this many days at the measured sales rate (ADR-0015). */
+export const FLIP_DAYS = 3;
+/** Rows under this profit are noise ("+0g"), in copper. */
+export const MIN_PROFIT = 10000;
 
 export interface Deal {
   key: string;
@@ -33,20 +30,20 @@ export interface Deal {
   reasons: string[];
   /** Highest unit price to pay (BUY, FLIP). */
   buyUpTo: number | null;
-  /** Unit price to sell at: relist price (FLIP), normal (BUY to stock), market (SELL). Null for a kit buy. */
+  /** Unit price to sell at: relist price (FLIP), market (SELL). Null for a kit buy. */
   sellAt: number | null;
   /** Units to buy (within the budget), or the lot's units (SELL). */
   units: number;
   /** What buying them costs, or what the lot cost (SELL). */
   cost: number;
-  /** Profit after the cut (FLIP, SELL, BUY to stock), or what buying now saves vs the reference (kit BUY). */
+  /** Profit after the cut (FLIP, SELL), or what buying now saves vs the reference (kit BUY). */
   value: number;
   valueKind: "profit" | "saves";
   /** Biggest discount vs its reference price, e.g. −0.24 (BUY, FLIP). */
   discount: number | null;
   /** Estimated units sold per day (ADR-0012), null when there are no sales data. */
   perDay: number | null;
-  /** units ÷ perDay. */
+  /** Days until the units sell: FLIP counts every unit listed under the relist price, since ours sell last. */
   daysToSell: number | null;
   /** Hours of sales data behind perDay. */
   salesHours: number;
@@ -101,6 +98,51 @@ export function take(ladder: Ladder, upTo: number, want: number, budget: number)
   return { units, cost, capped };
 }
 
+export interface FlipPlan {
+  /** The price buyers have proven they pay: the lower of the average paid and normal. */
+  proven: number;
+  /** Price to relist at: `proven`, or lower when more is listed under it than sells in FLIP_DAYS. */
+  relist: number;
+  /** Highest unit price that still profits after the cut at `relist`. */
+  buyUpTo: number;
+  units: number;
+  cost: number;
+  capped: boolean;
+  /** Revenue after the cut minus cost. */
+  profit: number;
+  /** Everything listed under `relist` (ours included) ÷ sold per day: ours are the last to sell. */
+  days: number;
+}
+
+/**
+ * Buy to resell (ADR-0015). No margin is required: every unit that profits is taken, but the numbers are the
+ * cautious ones the data supports.
+ * - Resale price: what buyers paid (the sales estimate), or normal when that's lower. A price nobody paid is
+ *   never assumed. No flip without MIN_SALES_HOURS of sales data and some sales.
+ * - Queue: we buy the cheapest units and relist above them, so every unit listed under our price sells first.
+ *   The relist price drops under the first listing that would push that queue past FLIP_DAYS of sales.
+ */
+export function planFlip(x: BuyListItem, budget: number): FlipPlan | null {
+  const s = x.sales;
+  if (!s || s.hours < MIN_SALES_HOURS || !(s.perDay > 0) || !s.avgPrice) return null;
+  const proven = x.normal ? Math.min(s.avgPrice, x.normal) : s.avgPrice;
+  const cap = s.perDay * FLIP_DAYS;
+  let relist = proven;
+  let under = 0;
+  for (const [p, q] of x.ladder) {
+    if (p >= relist) break;
+    if (under + q > cap) {
+      relist = p - 1;
+      break;
+    }
+    under += q;
+  }
+  const net = Math.floor(relist * (1 - AH_CUT));
+  const buyUpTo = net - 1;
+  const t = take(x.ladder, buyUpTo, Number.POSITIVE_INFINITY, budget);
+  return { proven, relist, buyUpTo, ...t, profit: t.units * net - t.cost, days: under / s.perDay };
+}
+
 const perDayOf = (x: BuyListItem | null) => (x?.sales && x.sales.hours > 0 ? x.sales.perDay : null);
 const daysOf = (units: number, perDay: number | null) => (perDay ? units / perDay : null);
 
@@ -144,58 +186,27 @@ export function findDeals(input: DealInput): Deal[] {
     if (isVendor(x) || soulbound.has(x.id)) continue;
     const inKit = kitIds.has(x.id);
 
-    // FLIP (ADR-0012): the collector's numbers, cut down to the budget.
-    const rs = x.resale;
-    if (x.flip && rs) {
-      const t = take(x.ladder, rs.buyUpTo, rs.units, budget);
-      const value = Math.round(t.units * rs.price * (1 - AH_CUT)) - t.cost;
-      if (t.units > 0 && value > 0) {
-        const b = base(x, inKit);
-        deals.push({
-          ...b,
-          key: `flip:${x.id}`,
-          verdict: "flip",
-          reasons: [`${formatPct((x.now ?? rs.buyUpTo) / rs.price - 1)} vs what buyers paid`],
-          buyUpTo: rs.buyUpTo,
-          sellAt: rs.price,
-          units: t.units,
-          cost: t.cost,
-          value,
-          valueKind: "profit",
-          discount: x.now === null ? null : x.now / rs.price - 1,
-          daysToSell: daysOf(t.units, b.perDay),
-          capped: t.capped,
-        });
-      }
-    }
-
-    // BUY to stock: cheap now, resell at its normal price later. Kit items are covered above, flips by FLIP.
-    if (inKit || x.flip || !x.normal) continue;
-    const why = goodBuy(x, belowCraftPct);
-    if (!why) continue;
-    const perDay = perDayOf(x);
-    // Nothing sold over enough hours of data: no one to resell to.
-    if (perDay === 0 && (x.sales?.hours ?? 0) >= MIN_SALES_HOURS) continue;
-    const want = perDay ? Math.floor(perDay * STOCK_DAYS) : Number.POSITIVE_INFINITY;
-    // Every unit bought must resell at normal with the margin left after the cut.
-    const upTo = Math.min(why.upTo, Math.floor((x.normal * (1 - AH_CUT)) / (1 + STOCK_MARGIN)));
-    const t = take(x.ladder, upTo, want, budget);
-    const value = Math.round(t.units * x.normal * (1 - AH_CUT)) - t.cost;
-    if (t.units === 0 || value < MIN_PROFIT) continue;
+    // FLIP (ADR-0015): anything bought to resell, whatever the margin.
+    const f = planFlip(x, budget);
+    if (!f || f.units === 0 || f.profit < MIN_PROFIT || !x.sales?.avgPrice) continue;
+    const cheapest = x.ladder[0][0];
+    const reasons = [`${formatPct(cheapest / x.sales.avgPrice - 1)} vs what buyers paid`];
+    if (x.normal && x.normal < x.sales.avgPrice) reasons.push(`${formatPct(cheapest / x.normal - 1)} vs normal`);
+    if (f.relist < f.proven) reasons.push(`relist lower to sell in ${FLIP_DAYS} days`);
     deals.push({
-      ...base(x, false),
-      key: `buy:${x.id}`,
-      verdict: "buy",
-      reasons: why.reasons,
-      buyUpTo: upTo,
-      sellAt: x.normal,
-      units: t.units,
-      cost: t.cost,
-      value,
+      ...base(x, inKit),
+      key: `flip:${x.id}`,
+      verdict: "flip",
+      reasons,
+      buyUpTo: f.buyUpTo,
+      sellAt: f.relist,
+      units: f.units,
+      cost: f.cost,
+      value: f.profit,
       valueKind: "profit",
-      discount: why.discount,
-      daysToSell: daysOf(t.units, perDay),
-      capped: t.capped,
+      discount: cheapest / f.relist - 1,
+      daysToSell: f.days,
+      capped: f.capped,
     });
   }
 
