@@ -30,6 +30,8 @@ export function ItemName({ item, label, className = "item-link", block }: Props)
 
   // Fixed-position, in a portal: table wrappers scroll horizontally and would clip an absolutely positioned box.
   const show = (el: HTMLElement) => {
+    // Nothing beyond the name to show (data from before icons, or an item the API has no art or text for).
+    if (!item.icon && !item.tip?.length) return;
     const r = el.getBoundingClientRect();
     const x = Math.max(8, Math.min(r.left, window.innerWidth - TIP_WIDTH - 8));
     setAt({ x, y: r.bottom + 6 });
@@ -65,9 +67,6 @@ export function ItemName({ item, label, className = "item-link", block }: Props)
                   {line}
                 </p>
               ))}
-              {item.tip === undefined || item.tip.length === 0 ? (
-                <p className="muted">No tooltip text recorded for this item yet.</p>
-              ) : null}
             </div>,
             document.body,
           )
