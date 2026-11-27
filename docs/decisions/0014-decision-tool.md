@@ -1,7 +1,7 @@
 # ADR-0014: A fast decision tool: Deals, class kits, custom kits, stars
 
-Status: **Steps 1–4 Accepted** (owner, 2026-11-27: Deals page, class picker, kits for every spec with a source,
-custom kits, stars). The rest **Proposed**.
+Status: **Steps 1–5 Accepted** (owner, 2026-11-27: Deals page, class picker, kits for every spec with a source,
+custom kits, stars, whole-market scan). The rest **Proposed**.
 
 ## Context
 
@@ -81,6 +81,22 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
 5. **Whole-market scan on house 110.** Hourly points and listings for the ~200 commodities that sell the most
    (by the daily files), on top of the watchlist, so Deals, custom kits and stars aren't limited to what we
    thought of. Plus crafting profit per day over all recipes, filtered on "every reagent priced".
+   **As built (2026-11-27), market scan only; crafting profit is the next PR:**
+   - "Sell the most" is measured, not guessed from the daily files (which show supply, not sales): the book
+     keeps every commodity's listings on house 110, so the sales estimate (ADR-0012) runs on all of them.
+     `turnover.json` sums it per day; the market set is the `marketItems` (200) with the most **gold traded**
+     over 7 days, leaving out the watchlist, vendor items and soulbound ones.
+   - Sticky: a tracked item stays while it ranks in the top 400, so its history isn't cut by small rank
+     changes. A dropped item keeps its files; they just stop getting points.
+   - Market items get the watchlist's tracking on house 110 only (hourly, ladder, sales, buy list in group
+     `market`), so Deals, custom kits and stars see them. Raid prep stays watchlist only.
+   - Measured locally on the 15:22 → 16:22 UTC snapshots (~125k listings, 1,380 commodities, 462 with sales,
+     ~9,560g traded in that hour): `book.json` 2.6 MB (0.74 MB gzipped, up from 0.18 MB), `buylist.json`
+     361 KB (71 KB gzipped, up from 205 KB), `turnover.json` 9 KB. The first run with a market set fetches
+     the 200 new items' metadata once (~16 s); after that a run stays at a few seconds. Top picks: Arcane
+     Crystal, Arcanite Converter, Mithril Bar, Arcanite Bar, Deeprock Salt, Large Brilliant Shard, Steel Bar,
+     Mageweave, Vision Dust, Runecloth. The 200th traded ~3g in the hour.
+   - History and sales start the day an item is first tracked; nothing is backfilled.
 6. **Under vendor price.** Listings below what a vendor pays: buy, sell to the NPC, guaranteed profit. Needs
    the vendor sell price from the item API, not yet verified on Forever (new api-notes entry first).
 7. **Later:** movers (24 h / 7 d, with the noise floor), price by hour of day (for raid-night peaks), posting
