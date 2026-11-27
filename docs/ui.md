@@ -35,11 +35,10 @@ cost). Logic is in `site/src/lib/deals.ts` (pure, tested in `test/deals.test.ts`
 - **BUY, for your kit**: an item of the kit chosen on My kit that is a good buy now (cheap vs normal, ≥ 10% under
   its reagents' cost, or ≥ 10% under what buyers paid with ≥ 12 h of sales data). Buys what the chosen nights
   need, up to the best of those limits; the value is what that **saves** vs the reference price.
-- **BUY, to stock** (not in the kit, not a flip): the same reasons, but to resell at its normal price. Only
-  units that beat normal × 0.95 by 15% (`STOCK_MARGIN`, as the flip margin), at most 7 days of sales
-  (`STOCK_DAYS`), at least 5g profit after the cut (`MIN_PROFIT`, as `flipMinProfitGold`). Skipped when nothing
-  sold over ≥ 12 h of data.
-- **FLIP**: the collector's `resale` (ADR-0012), cut to the budget.
+- **FLIP** (ADR-0015, `planFlip`): any buy to resell, whatever the margin. Relist at `min(avg paid, normal)`,
+  lower if the units listed under it are more than 3 days of sales (`FLIP_DAYS`). Buy every unit under the
+  relist price × 0.95. Needs ≥ 12 h of sales data, at least 1g profit (`MIN_PROFIT`). Profit's subline shows the
+  return (profit ÷ cost). Days to sell counts every unit listed under the relist price, since ours sell last.
 - **SELL**: a stockpile lot that meets both sell rules (ADR-0011), with its P/L.
 
 A kit item that is also a flip gets both rows. Vendor and soulbound items never appear.

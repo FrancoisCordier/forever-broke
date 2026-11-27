@@ -37,6 +37,7 @@ Phased; each phase is one PR, and ui.md is updated as each lands.
    - BUY to stock (any other good buy that isn't a flip) resells at normal, so it follows the flip rule against
      normal instead of what buyers paid: units ≤ normal × 0.95 / 1.15, at most 7 days of sales, ≥ 5g profit.
      Under craft cost alone (at its normal price) is never a stock buy: it can't profit.
+     _Replaced by ADR-0015 (same day): any buy to resell is a FLIP; BUY is kit only._
    - The budget is **per deal** (one number, default 800g, 0 = none), not a total spread over the list.
    - Raid prep stays as the browse-all page with its tables, since Deals only shows rows that act. The Buy
      list's Under craft cost table and Watch table are gone; under craft cost lives on as a BUY reason.
