@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { type BuyListItem, costOfUnits, type Kit } from "../../../src/shared/signals.ts";
 import { formatGold, formatWholeGold } from "../lib/format.ts";
 import { type GoodBuy, goodBuy, type KitPrefs, kitRows } from "../lib/kit.ts";
+import { empty, gold, note, subline, table, tableWrap, tag, tags } from "../lib/ui.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import { ItemName } from "./ItemName.tsx";
 
@@ -35,14 +36,14 @@ export function raidDeals(kit: Kit, items: BuyListItem[], prefs: KitPrefs, below
 export function ForYourRaids({ kit, deals, nights }: { kit: Kit; deals: Deal[]; nights: number }) {
   if (deals.length === 0)
     return (
-      <p className="empty">
+      <p className={empty}>
         Nothing in your kit ({kit.label}) is cheap right now: everything is at its usual price or above. Change items or
         quantities on <Link to="/kit">My kit</Link>.
       </p>
     );
   return (
-    <div className="table-scroll">
-      <table className="table">
+    <div className={tableWrap}>
+      <table className={table}>
         <thead>
           <tr>
             <th scope="col">Item</th>
@@ -61,23 +62,23 @@ export function ForYourRaids({ kit, deals, nights }: { kit: Kit; deals: Deal[]; 
             <tr key={d.key}>
               <td>
                 <ItemName item={d.x} />
-                <span className="note lot-date">{d.slot}</span>
+                <span className={subline}>{d.slot}</span>
               </td>
               <td>
-                <div className="tags">
+                <div className={tags}>
                   {d.why.reasons.map((r) => (
-                    <span key={r} className="tag tag-cheap">
+                    <span key={r} className={tag.cheap}>
                       {r}
                     </span>
                   ))}
                 </div>
               </td>
-              <td className="gold">{d.x.now === null ? "—" : formatGold(d.x.now)}</td>
-              <td className="soft">{formatGold(d.why.upTo)}</td>
-              <td className="soft">{d.need}</td>
+              <td className={gold}>{d.x.now === null ? "—" : formatGold(d.x.now)}</td>
+              <td className="text-soft">{formatGold(d.why.upTo)}</td>
+              <td className="text-soft">{d.need}</td>
               <td>
-                <strong className="text">{d.buy}</strong>{" "}
-                <span className="note">
+                <strong className="text-fg">{d.buy}</strong>{" "}
+                <span className={note}>
                   ≈ {formatWholeGold(d.cost)}
                   {d.buy < d.need ? ` (only ${d.buy} listed under the price)` : ""}
                 </span>

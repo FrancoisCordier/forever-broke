@@ -16,15 +16,33 @@ interface Props {
   item: ItemLike;
   /** Link text instead of the name (e.g. "Details" next to a picker). */
   label?: ReactNode;
-  /** "item-link" in tables, "item-name" for card titles. */
-  className?: string;
+  /** "row" in tables, "title" for card titles. */
+  size?: "row" | "title";
   block?: boolean;
 }
 
 const TIP_WIDTH = 300;
 
+const LINK = {
+  row: "items-center gap-2 font-semibold no-underline hover:underline",
+  title: "items-center gap-2 text-[19px] font-bold no-underline hover:underline",
+} as const;
+const ICON = {
+  row: "size-[18px] flex-none rounded border border-line-strong",
+  title: "size-6 flex-none rounded border border-line-strong",
+} as const;
+
+/** Tooltip text lines from items.json; "Use:" lines in the game's green. */
+export function TipLines({ lines }: { lines: string[] }) {
+  return lines.map((line) => (
+    <p key={line} className={`mt-1 whitespace-pre-line${line.startsWith("Use:") ? " text-use" : ""}`}>
+      {line}
+    </p>
+  ));
+}
+
 /** Item icon + name linking to its page, with a game-style tooltip on hover or keyboard focus. */
-export function ItemName({ item, label, className = "item-link", block }: Props) {
+export function ItemName({ item, label, size = "row", block }: Props) {
   const tipId = useId();
   const [at, setAt] = useState<{ x: number; y: number } | null>(null);
 
@@ -42,8 +60,8 @@ export function ItemName({ item, label, className = "item-link", block }: Props)
     <>
       <Link
         to={`/item/${item.id}`}
-        className={`${className} item-with-icon`}
-        style={{ color: qualityColor(item.quality), display: block ? "flex" : undefined }}
+        className={`${block ? "flex" : "inline-flex"} ${LINK[size]}`}
+        style={{ color: qualityColor(item.quality) }}
         aria-describedby={at ? tipId : undefined}
         onMouseEnter={(e) => show(e.currentTarget)}
         onMouseLeave={hide}
@@ -51,22 +69,31 @@ export function ItemName({ item, label, className = "item-link", block }: Props)
         onBlur={hide}
       >
         {item.icon ? (
-          <img className="item-icon" src={iconUrl(item.icon, 36)} alt="" width={18} height={18} loading="lazy" />
+          <img className={ICON[size]} src={iconUrl(item.icon, 36)} alt="" width={18} height={18} loading="lazy" />
         ) : null}
         <span>{label ?? item.name}</span>
       </Link>
       {at
         ? createPortal(
-            <div id={tipId} role="tooltip" className="item-tip" style={{ left: at.x, top: at.y, width: TIP_WIDTH }}>
-              <div className="item-tip-head">
-                {item.icon ? <img src={iconUrl(item.icon, 56)} alt="" width={36} height={36} /> : null}
+            <div
+              id={tipId}
+              role="tooltip"
+              className="pointer-events-none fixed z-50 max-w-[calc(100vw-16px)] rounded-ctl border border-line-strong bg-tip px-3 py-2.5 text-[13px] leading-[1.45] text-soft shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+              style={{ left: at.x, top: at.y, width: TIP_WIDTH }}
+            >
+              <div className="mb-1.5 flex items-center gap-2.5">
+                {item.icon ? (
+                  <img
+                    className="rounded-md border border-line-strong"
+                    src={iconUrl(item.icon, 56)}
+                    alt=""
+                    width={36}
+                    height={36}
+                  />
+                ) : null}
                 <strong style={{ color: qualityColor(item.quality) }}>{item.name}</strong>
               </div>
-              {(item.tip ?? []).map((line) => (
-                <p key={line} className={line.startsWith("Use:") ? "item-tip-use" : undefined}>
-                  {line}
-                </p>
-              ))}
+              <TipLines lines={item.tip ?? []} />
             </div>,
             document.body,
           )

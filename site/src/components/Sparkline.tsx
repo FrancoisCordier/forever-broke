@@ -13,7 +13,7 @@ export function Sparkline({ points, reference, width = 120, height = 40, label }
   const values = points.map((p) => p[1]).filter((v): v is number => v !== null);
   if (values.length < 2) {
     return (
-      <span className="spark-empty" style={{ width, height }}>
+      <span className="inline-flex items-center text-[11.5px] text-muted" style={{ width, height }}>
         not enough history
       </span>
     );

@@ -1,3 +1,4 @@
+import { btn } from "../lib/ui.ts";
 import { useToast } from "./Toast.tsx";
 
 export function CopyIcon({ size = 16 }: { size?: number }) {
@@ -47,7 +48,7 @@ export function CopyButton({ text, label = "Copy name", ariaLabel, done, variant
   return (
     <button
       type="button"
-      className={`btn btn-${variant}${small ? " btn-small" : ""}`}
+      className={btn(variant, small)}
       aria-label={ariaLabel ?? label}
       onClick={async () => toast((await copy(text)) ? done : "Couldn't copy: your browser blocked the clipboard")}
     >

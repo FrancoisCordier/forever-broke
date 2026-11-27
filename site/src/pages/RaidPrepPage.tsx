@@ -9,6 +9,7 @@ import { applyFilter, GROUPS, isVendor, NO_FILTER } from "../lib/buylist.ts";
 import { useBuyList } from "../lib/data.ts";
 import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
+import { cheap, empty, gold, lead, note, sectionHead, table, tableWrap } from "../lib/ui.ts";
 
 interface Craft {
   x: BuyListItem;
@@ -54,11 +55,11 @@ const CRAFT_VALUE: Record<CraftCol, (c: Craft) => number | string | null> = {
 
 function CraftTable({ rows }: { rows: Craft[] }) {
   const { sort, toggle } = useSort<CraftCol>({ key: "margin", dir: "desc" }, { margin: "desc", now: "desc" });
-  if (rows.length === 0) return <p className="empty">No consumables match.</p>;
+  if (rows.length === 0) return <p className={empty}>No consumables match.</p>;
   const sorted = sortRows(rows, CRAFT_VALUE[sort.key], sort.dir);
   return (
-    <div className="table-scroll">
-      <table className="table">
+    <div className={tableWrap}>
+      <table className={table}>
         <thead>
           <tr>
             <SortHeader label="Consumable" col="name" sort={sort} onSort={toggle} />
@@ -75,15 +76,17 @@ function CraftTable({ rows }: { rows: Craft[] }) {
                 <ItemName item={x} />
               </td>
               {cost !== null ? (
-                <td className="gold">{formatGold(cost)}</td>
+                <td className={gold}>{formatGold(cost)}</td>
               ) : (
-                <td className="note">not listed: {missing.join(", ")}</td>
+                <td className={note}>not listed: {missing.join(", ")}</td>
               )}
-              <td className={x.now === null ? "muted" : "gold"}>{x.now === null ? "not listed" : formatGold(x.now)}</td>
-              <td className={margin === null ? "muted" : margin > 0 ? "cheap" : "soft"}>
+              <td className={x.now === null ? "text-muted" : gold}>
+                {x.now === null ? "not listed" : formatGold(x.now)}
+              </td>
+              <td className={margin === null ? "text-muted" : margin > 0 ? cheap : "text-soft"}>
                 {margin === null ? "—" : `${margin > 0 ? "+" : "−"}${formatGold(Math.abs(margin))}`}
               </td>
-              <td className="note recipe">
+              <td className={`${note} min-w-70`}>
                 {x.recipe?.reagents.map((r) => `${r.qty} ${r.name}`).join(", ")}
                 {x.recipe && x.recipe.makes !== 1 ? ` → ${x.recipe.makes}` : ""}
               </td>
@@ -106,10 +109,10 @@ export function RaidPrepPage() {
   const craftRows = applyFilter(crafts(all, list.data.reagentPrices ?? {}), filter);
 
   return (
-    <div className="stack-xl">
-      <section className="stack-xs">
+    <div className="flex flex-col gap-10">
+      <section className="flex flex-col gap-1.5">
         <h1>Raid prep</h1>
-        <p className="muted lead">
+        <p className={lead}>
           Every watchlist item, grouped. Prices are for house {list.data.house}. Items sold by vendors are left out.
         </p>
       </section>
@@ -121,10 +124,10 @@ export function RaidPrepPage() {
         summary={`${shown.length} of ${listed.length} items`}
       />
 
-      <section aria-labelledby="crafts" className="stack-md">
-        <div className="section-head">
+      <section aria-labelledby="crafts" className="flex flex-col gap-3.5">
+        <div className={sectionHead}>
           <h2 id="crafts">Craft or buy?</h2>
-          <span className="muted">
+          <span className="text-muted">
             Reagent cost at today's prices (vendor price when cheaper) vs the AH price, after the 5% AH cut.
           </span>
         </div>
@@ -136,10 +139,10 @@ export function RaidPrepPage() {
         if (group.length === 0) return null;
         const cheap = group.filter((x) => x.cheap).length;
         return (
-          <section key={key} aria-labelledby={`g-${key}`} className="stack-md">
-            <div className="section-head">
+          <section key={key} aria-labelledby={`g-${key}`} className="flex flex-col gap-3.5">
+            <div className={sectionHead}>
               <h2 id={`g-${key}`}>{title}</h2>
-              <span className="muted">
+              <span className="text-muted">
                 {group.length} items
                 {cheap ? ` · ${cheap} cheap now (${formatPct(-list.data.cheapPct / 100)} or more)` : ""}
               </span>
@@ -148,7 +151,7 @@ export function RaidPrepPage() {
           </section>
         );
       })}
-      {shown.length === 0 ? <p className="empty">No items match.</p> : null}
+      {shown.length === 0 ? <p className={empty}>No items match.</p> : null}
     </div>
   );
 }

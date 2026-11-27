@@ -3,6 +3,17 @@ import { NavLink } from "react-router";
 import { HOUSE, useBuyList } from "../lib/data.ts";
 import { countdown, timeAgo } from "../lib/format.ts";
 
+const PAGE_WIDTH = "mx-auto max-w-[1200px] px-4 sm:px-6";
+
+const navClass = ({ isActive }: { isActive: boolean }) =>
+  `rounded-lg px-3 py-2.5 no-underline ${isActive ? "bg-raised font-semibold text-fg" : "text-muted"}`;
+
+const CHIP = {
+  plain: "rounded-full bg-chip px-2.5 py-1.5 text-soft",
+  warn: "rounded-full bg-warn-bg px-2.5 py-1.5 text-loss",
+  raid: "rounded-full bg-raid-bg px-2.5 py-1.5 font-semibold text-raid",
+} as const;
+
 function Logo() {
   return (
     <svg
@@ -29,34 +40,40 @@ export function Layout({ children }: { children: ReactNode }) {
   const stale = data ? Date.now() / 1000 - data.t > 3 * 3600 : false;
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="topbar-inner">
-          <NavLink to="/" className="brand">
+    <div>
+      <header className="border-b border-line bg-bar">
+        <div className={`${PAGE_WIDTH} flex flex-wrap items-center gap-x-6 gap-y-3 py-3`}>
+          <NavLink to="/" className="flex items-center gap-2.5 text-lg font-bold text-fg no-underline">
             <Logo />
             <span>Forever Broke</span>
           </NavLink>
-          <nav aria-label="Main" className="nav">
-            <NavLink to="/" end>
+          <nav aria-label="Main" className="flex flex-wrap gap-1">
+            <NavLink to="/" end className={navClass}>
               Buy list
             </NavLink>
-            <NavLink to="/kit">My kit</NavLink>
-            <NavLink to="/stockpile">Stockpile</NavLink>
-            <NavLink to="/raid">Raid prep</NavLink>
+            <NavLink to="/kit" className={navClass}>
+              My kit
+            </NavLink>
+            <NavLink to="/stockpile" className={navClass}>
+              Stockpile
+            </NavLink>
+            <NavLink to="/raid" className={navClass}>
+              Raid prep
+            </NavLink>
           </nav>
-          <div className="spacer" />
-          <div className="chips">
-            <span className="chip">House {HOUSE} · Alliance</span>
+          <div className="flex-auto" />
+          <div className="flex flex-wrap gap-2 text-[13px]">
+            <span className={CHIP.plain}>House {HOUSE} · Alliance</span>
             {data ? (
-              <span className={`chip${stale ? " chip-warn" : ""}`} title="Time of the auction house snapshot">
+              <span className={stale ? CHIP.warn : CHIP.plain} title="Time of the auction house snapshot">
                 Data {timeAgo(data.t)}
               </span>
             ) : null}
-            {left ? <span className="chip chip-raid">Raids open in {left}</span> : null}
+            {left ? <span className={CHIP.raid}>Raids open in {left}</span> : null}
           </div>
         </div>
       </header>
-      <main className="main">{children}</main>
+      <main className={`${PAGE_WIDTH} pt-8 pb-16`}>{children}</main>
     </div>
   );
 }

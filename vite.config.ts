@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -8,7 +9,7 @@ const repoRoot = fileURLToPath(new URL(".", import.meta.url));
 export default defineConfig({
   root: "site",
   base: "/forever-broke/", // GitHub Pages project path
-  plugins: [react()],
+  plugins: [react(), tailwindcss()], // Tailwind: ADR-0013
   build: { outDir: "../dist", emptyOutDir: true },
   server: { fs: { allow: [repoRoot] } },
 });

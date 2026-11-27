@@ -2,6 +2,7 @@ import type { BuyListItem } from "../../../src/shared/signals.ts";
 import { raidLabel } from "../lib/buylist.ts";
 import { formatGold, formatPct } from "../lib/format.ts";
 import { sortRows, useSort } from "../lib/sort.ts";
+import { cheap, empty, gold, note, table, tableWrap } from "../lib/ui.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import { ItemName } from "./ItemName.tsx";
 import { SortHeader } from "./SortHeader.tsx";
@@ -30,11 +31,11 @@ export function ItemTable({ items, highlightCheap }: Props) {
   const { sort, toggle } = useSort<Col>({ key: "name", dir: "asc" }, DEFAULT_DIRS);
   const rows = sortRows(items, VALUE[sort.key], sort.dir);
 
-  if (items.length === 0) return <p className="empty">No items match.</p>;
+  if (items.length === 0) return <p className={empty}>No items match.</p>;
 
   return (
-    <div className="table-scroll">
-      <table className="table">
+    <div className={tableWrap}>
+      <table className={table}>
         <thead>
           <tr>
             <SortHeader label="Item" col="name" sort={sort} onSort={toggle} />
@@ -55,10 +56,10 @@ export function ItemTable({ items, highlightCheap }: Props) {
               <td>
                 <ItemName item={x} />
               </td>
-              <td className="gold">{x.now === null ? "not listed" : formatGold(x.now)}</td>
-              <td className="soft">{x.normal === null ? "—" : formatGold(x.normal)}</td>
-              <td className={highlightCheap && x.cheap ? "cheap" : "soft"}>{formatPct(x.change)}</td>
-              <td className="soft">{x.qty.toLocaleString("en-GB")}</td>
+              <td className={gold}>{x.now === null ? "not listed" : formatGold(x.now)}</td>
+              <td className="text-soft">{x.normal === null ? "—" : formatGold(x.normal)}</td>
+              <td className={highlightCheap && x.cheap ? cheap : "text-soft"}>{formatPct(x.change)}</td>
+              <td className="text-soft">{x.qty.toLocaleString("en-GB")}</td>
               <td>
                 <Sparkline
                   points={x.spark}
@@ -68,7 +69,7 @@ export function ItemTable({ items, highlightCheap }: Props) {
                   label={`${x.name} price over 7 days`}
                 />
               </td>
-              <td className="note">{raidLabel(x)?.replace(/^Raid · /, "") ?? ""}</td>
+              <td className={note}>{raidLabel(x)?.replace(/^Raid · /, "") ?? ""}</td>
               <td>
                 <CopyButton
                   text={x.name}
