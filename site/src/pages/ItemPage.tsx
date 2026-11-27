@@ -5,6 +5,7 @@ import { type DailySeries, type HourlySeries, iconUrl } from "../../../src/share
 import { CopyButton } from "../components/CopyButton.tsx";
 import { TipLines } from "../components/ItemName.tsx";
 import { type Point, PriceChart } from "../components/PriceChart.tsx";
+import { StarButton } from "../components/StarButton.tsx";
 import { Status } from "../components/Status.tsx";
 import { atVendorPrice, raidLabel } from "../lib/buylist.ts";
 import { type Loadable, useBuyList, useDaily, useHourly } from "../lib/data.ts";
@@ -17,6 +18,7 @@ import {
   headControls,
   pageHead,
   sectionHead,
+  segment,
   small,
   tableNarrow,
   tag,
@@ -118,6 +120,9 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
               />
             ) : null}
             {x.name}
+            <span className="text-[26px]">
+              <StarButton id={x.id} name={x.name} />
+            </span>
           </h1>
           {x.tip?.length ? (
             <div className="max-w-[60ch] text-sm leading-normal text-soft">
@@ -208,13 +213,7 @@ function ItemDetail({ x, raidOpens }: { x: BuyListItem; raidOpens: string }) {
           <fieldset className="flex gap-1">
             <legend className="sr-only">Range</legend>
             {RANGES.map(([r, label]) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={range === r}
-                className="h-9 cursor-pointer rounded-lg border border-line-strong px-2.5 text-[13px] text-muted aria-pressed:bg-raised aria-pressed:font-semibold aria-pressed:text-fg"
-                onClick={() => setRange(r)}
-              >
+              <button key={r} type="button" aria-pressed={range === r} className={segment} onClick={() => setRange(r)}>
                 {label}
               </button>
             ))}

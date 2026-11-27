@@ -123,13 +123,28 @@ export interface KitSlot {
   perNight: number;
   options: number[];
   note?: string;
-  /** DPS lost without it, everything else on (from the owner's sim). Slots are listed most DPS first. */
+  /** DPS lost without it, everything else on (from a sim). Slots are listed most DPS first. */
   dps?: number;
+  /** The options are interchangeable: default to the cheapest one listed. */
+  cheapest?: boolean;
+}
+
+/** Where a kit's list comes from (ADR-0014). */
+export interface KitSource {
+  name: string;
+  url: string;
+  /** The guide's own "updated" date. */
+  date: string;
 }
 
 export interface Kit {
   id: string;
+  /** "Hunter", "Mage"… The site groups kits by class, then spec. */
+  class: string;
+  spec: string;
+  /** "Hunter · Marksmanship". */
   label: string;
+  source?: KitSource;
   slots: KitSlot[];
 }
 
@@ -149,6 +164,8 @@ export interface BuyList {
   /** Optional only so the site still reads buy lists written before ADR-0010. */
   belowCraftPct?: number;
   kits?: Kit[];
+  /** Kit items that bind when picked up: never on the AH, so kits leave them out of costs (ADR-0014). */
+  soulbound?: number[];
   /** Stockpile sell thresholds (ADR-0011). Optional: older buy lists lack them; the site falls back to 30 / 15. */
   sell?: { sellAboveCostPct: number; sellAboveNormalPct: number };
   items: BuyListItem[];

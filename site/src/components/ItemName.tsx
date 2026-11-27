@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import { iconUrl } from "../../../src/shared/types.ts";
 import { qualityColor } from "../lib/format.ts";
+import { StarButton } from "./StarButton.tsx";
 
 export interface ItemLike {
   id: number;
@@ -19,6 +20,8 @@ interface Props {
   /** "row" in tables, "title" for card titles. */
   size?: "row" | "title";
   block?: boolean;
+  /** Leave out the star (e.g. a "Details" link next to a picker). */
+  noStar?: boolean;
 }
 
 const TIP_WIDTH = 300;
@@ -42,7 +45,7 @@ export function TipLines({ lines }: { lines: string[] }) {
 }
 
 /** Item icon + name linking to its page, with a game-style tooltip on hover or keyboard focus. */
-export function ItemName({ item, label, size = "row", block }: Props) {
+export function ItemName({ item, label, size = "row", block, noStar }: Props) {
   const tipId = useId();
   const [at, setAt] = useState<{ x: number; y: number } | null>(null);
 
@@ -57,10 +60,11 @@ export function ItemName({ item, label, size = "row", block }: Props) {
   const hide = () => setAt(null);
 
   return (
-    <>
+    <span className={`${block ? "flex" : "inline-flex"} items-center gap-1.5`}>
+      {noStar ? null : <StarButton id={item.id} name={item.name} />}
       <Link
         to={`/item/${item.id}`}
-        className={`${block ? "flex" : "inline-flex"} ${LINK[size]}`}
+        className={`inline-flex ${LINK[size]}`}
         style={{ color: qualityColor(item.quality) }}
         aria-describedby={at ? tipId : undefined}
         onMouseEnter={(e) => show(e.currentTarget)}
@@ -98,6 +102,6 @@ export function ItemName({ item, label, size = "row", block }: Props) {
             document.body,
           )
         : null}
-    </>
+    </span>
   );
 }

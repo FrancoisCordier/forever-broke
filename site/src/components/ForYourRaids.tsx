@@ -18,10 +18,16 @@ interface Deal {
 }
 
 /** Kit items that are a good buy right now, with how many you need (My kit settings). */
-export function raidDeals(kit: Kit, items: BuyListItem[], prefs: KitPrefs, belowCraftPct: number): Deal[] {
+export function raidDeals(
+  kit: Kit,
+  items: BuyListItem[],
+  prefs: KitPrefs,
+  belowCraftPct: number,
+  soulbound: ReadonlySet<number>,
+): Deal[] {
   const deals: Deal[] = [];
-  for (const r of kitRows(kit, items, prefs)) {
-    if (!r.item || r.need <= 0) continue;
+  for (const r of kitRows(kit, items, prefs, soulbound)) {
+    if (!r.item || r.soulbound || r.need <= 0) continue;
     const why = goodBuy(r.item, belowCraftPct);
     if (!why) continue;
     const { units: buy, cost } = costOfUnits(

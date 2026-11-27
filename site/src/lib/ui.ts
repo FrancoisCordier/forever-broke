@@ -50,6 +50,10 @@ export type BtnVariant = keyof typeof BTN_VARIANT;
 export const btn = (variant: BtnVariant, isSmall = false) =>
   `${BTN} ${BTN_VARIANT[variant]} ${isSmall ? "h-9 px-2.5 text-[13px]" : "h-11 px-3.5"}`;
 
+/** One button of a segmented control (`aria-pressed` marks the chosen one). */
+export const segment =
+  "h-9 cursor-pointer rounded-lg border border-line-strong px-2.5 text-[13px] text-muted aria-pressed:bg-raised aria-pressed:font-semibold aria-pressed:text-fg";
+
 /** Form fields: label above control. */
 export const field = "flex flex-col gap-1";
 export const label = "text-xs font-medium text-muted";

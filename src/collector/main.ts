@@ -381,6 +381,7 @@ async function writeBuyList(
     cheapPct: cfg.thresholds.belowMedianPct,
     belowCraftPct: cfg.thresholds.belowCraftPct,
     kits: kitList(cfg),
+    soulbound: cfg.soulbound,
     sell: {
       sellAboveCostPct: cfg.thresholds.sellAboveCostPct,
       sellAboveNormalPct: cfg.thresholds.sellAboveNormalPct,

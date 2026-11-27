@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { GROUPS, type ItemFilter } from "../lib/buylist.ts";
+import { GROUPS, type ItemFilter, NO_FILTER } from "../lib/buylist.ts";
 import { btn, field, label, select, small, textInput } from "../lib/ui.ts";
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 export function ItemFilters({ value, onChange, groups, summary }: Props) {
   const id = useId();
   const options = GROUPS.filter(([key]) => groups.includes(key));
-  const active = value.query !== "" || value.group !== "";
+  const active = value.query !== "" || value.group !== "" || value.starred;
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className={field}>
@@ -49,8 +49,16 @@ export function ItemFilters({ value, onChange, groups, summary }: Props) {
           ))}
         </select>
       </div>
+      <button
+        type="button"
+        aria-pressed={value.starred}
+        className={`${btn("ghost")} aria-pressed:border-gold aria-pressed:text-gold`}
+        onClick={() => onChange({ ...value, starred: !value.starred })}
+      >
+        {value.starred ? "★" : "☆"} Starred only
+      </button>
       {active ? (
-        <button type="button" className={btn("ghost")} onClick={() => onChange({ query: "", group: "" })}>
+        <button type="button" className={btn("ghost")} onClick={() => onChange(NO_FILTER)}>
           Clear
         </button>
       ) : null}

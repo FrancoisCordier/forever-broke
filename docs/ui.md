@@ -57,11 +57,16 @@ Visual mockup: <https://claude.ai/artifact/C43TYnZUn2FhDpM87uiJbC> (private to t
 ## Other pages
 
 - **Item**: chart (hourly 30 d, daily all-time), raid date marker, recipes using it (from `recipes.json`), current depth.
-- **My kit** (`#/kit`): a raid kit from `config.yaml` → `kits` (first one: Hunter · Marksmanship). One row per slot:
-  pick the item when there are options, units per night (editable), need = per night × raid nights, cost from
-  walking today's listings cheapest first, and "why buy now" tags (cheap, under craft cost). Unlisted items (the
-  Natural flasks, for now) are named but not priced. Choices are kept in localStorage. "Copy shopping list" copies
-  the item names.
+- **My kit** (`#/kit`, ADR-0014): pick a class, then a spec; each spec has a default kit from `config.yaml` →
+  `kits`, with a link to the guide it comes from. One row per slot: pick the item when there are options, units
+  per night (editable), need = per night × raid nights, cost from walking today's listings cheapest first, and
+  "why buy now" tags (cheap, under craft cost, under what buyers paid). Unlisted items are named but not priced.
+  Soulbound items (`config.yaml` → `soulbound`) say "farm it" and stay out of the cost and the shopping list.
+  "Customise" copies the kit into the viewer's own (★ in the spec row): rename, remove a slot or an option, add
+  a watchlist item as a new slot or an alternative, "Copy link" to share it (`#/kit?share=…` offers "Add to my
+  kits"), delete. Choices and custom kits are kept in localStorage. "Copy shopping list" copies the item names.
+- **Stars** (ADR-0014): a ☆ before every item name (and on the item page) follows it; Raid prep and the Buy list's
+  watch table have a "Starred only" filter. Kept in localStorage, synced between open tabs.
 - **Raid prep**: every watchlist group with now vs normal and the countdown. Craft table: flask cost from reagents vs flask price, when one is listed.
 - **Stockpile** (`#/stockpile`, ADR-0011): add a lot (any item seen on the AH, qty, price paid typed as `11g 55s`
   or `11.55`, why: to resell / for my raids / alt's levelling mats). Header: paid, worth after the 5% cut, P/L.

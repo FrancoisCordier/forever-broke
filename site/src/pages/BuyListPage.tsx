@@ -9,9 +9,11 @@ import { ItemTable } from "../components/ItemTable.tsx";
 import { ResellList } from "../components/ResellList.tsx";
 import { Status } from "../components/Status.tsx";
 import { applyFilter, isVendor, NO_FILTER, sections } from "../lib/buylist.ts";
+import { useCustomKits } from "../lib/customKits.ts";
 import { useBuyList } from "../lib/data.ts";
 import { pickKit, useKitPrefs } from "../lib/kit.ts";
 import { sortRows } from "../lib/sort.ts";
+import { useStars } from "../lib/stars.ts";
 import {
   btn,
   cardGrid,
@@ -62,15 +64,18 @@ export function BuyListPage() {
   const [cardSort, setCardSort] = useState<CardSort>("change");
   const [watchFilter, setWatchFilter] = useState(NO_FILTER);
   const [kitPrefs] = useKitPrefs();
+  const [customKits] = useCustomKits();
+  const stars = useStars();
 
   if (list.state !== "ok") return <Status value={list} />;
   const { buyNow, belowCraft, cheapOther, watch } = sections(list.data.items);
-  const watchShown = applyFilter(watch, watchFilter);
+  const watchShown = applyFilter(watch, watchFilter, stars);
   const cards = sortCards(buyNow, cardSort);
   const history = Math.max(0, ...list.data.items.map((x) => x.normalDays));
 
-  const kit = pickKit(list.data.kits ?? [], kitPrefs);
-  const deals = kit ? raidDeals(kit, list.data.items, kitPrefs, list.data.belowCraftPct ?? 10) : [];
+  const kit = pickKit([...(list.data.kits ?? []), ...customKits], kitPrefs);
+  const soulbound = new Set(list.data.soulbound ?? []);
+  const deals = kit ? raidDeals(kit, list.data.items, kitPrefs, list.data.belowCraftPct ?? 10, soulbound) : [];
   const flips = sortRows(
     list.data.items.filter((x) => x.flip && !isVendor(x)),
     (x) => x.resale?.profit ?? 0,

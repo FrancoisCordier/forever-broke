@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { parse } from "yaml";
-import type { Kit, KitSlot } from "../shared/signals.ts";
+import type { Kit } from "../shared/signals.ts";
 
 export interface HouseConfig {
   id: number;
@@ -22,8 +22,8 @@ export interface Thresholds {
   flipMinProfitGold: number;
 }
 
-/** config.yaml `kits`: kit id → label and slots. Converted to `Kit[]` for the buy list. */
-export type KitsConfig = Record<string, { label: string; slots: KitSlot[] }>;
+/** config.yaml `kits`: kit id → class, spec, source and slots. Converted to `Kit[]` for the buy list. */
+export type KitsConfig = Record<string, Omit<Kit, "id" | "label">>;
 
 export interface Config {
   region: string;
@@ -36,6 +36,8 @@ export interface Config {
   watchlist: Record<string, Record<string, string>>;
   /** item id → vendor price in copper, for items an NPC sells (no point stockpiling above it). */
   vendorPrices: Record<string, number>;
+  /** Kit items that bind when picked up (never on the AH). */
+  soulbound: number[];
   thresholds: Thresholds;
   kits: KitsConfig;
 }
@@ -66,21 +68,28 @@ export async function loadConfig(path = "config.yaml"): Promise<Config> {
   if (Number.isNaN(Date.parse(cfg.raidOpens))) throw new Error(`${path}: raidOpens must be an ISO date`);
   cfg.watchlist ??= {};
   cfg.vendorPrices ??= {};
+  cfg.soulbound ??= [];
   cfg.thresholds = { ...DEFAULT_THRESHOLDS, ...cfg.thresholds };
   cfg.kits ??= {};
   checkKits(cfg, path);
   return cfg;
 }
 
+const SLOT_KEYS = new Set(["slot", "perNight", "options", "note", "dps", "cheapest"]);
+
 /** Every kit item must be on the watchlist: that's the only place its price comes from. */
 function checkKits(cfg: Config, path: string): void {
   const watch = watchlistIds(cfg);
   for (const [id, kit] of Object.entries(cfg.kits)) {
-    if (!kit?.label || !Array.isArray(kit.slots)) throw new Error(`${path}: kit ${id} needs a label and slots`);
+    if (!kit?.class || !kit.spec || !Array.isArray(kit.slots))
+      throw new Error(`${path}: kit ${id} needs a class, a spec and slots`);
     // Slot names key the viewer's saved choices on the site, so they must be unique within a kit.
     const names = kit.slots.map((s) => s.slot);
     if (new Set(names).size !== names.length) throw new Error(`${path}: kit ${id} has duplicate slot names`);
     for (const s of kit.slots) {
+      // An unquoted comma in a flow-style note splits it into a stray key: catch it here, not on the site.
+      const stray = Object.keys(s).filter((k) => !SLOT_KEYS.has(k));
+      if (stray.length) throw new Error(`${path}: kit ${id}, slot ${s.slot}: unknown keys ${stray.join(", ")}`);
       const badDps = s.dps !== undefined && !(Number.isFinite(s.dps) && s.dps >= 0);
       if (
         !s.slot ||
@@ -98,7 +107,14 @@ function checkKits(cfg: Config, path: string): void {
 }
 
 export function kitList(cfg: Config): Kit[] {
-  return Object.entries(cfg.kits).map(([id, k]) => ({ id, label: k.label, slots: k.slots }));
+  return Object.entries(cfg.kits).map(([id, k]) => ({
+    id,
+    class: k.class,
+    spec: k.spec,
+    label: `${k.class} · ${k.spec}`,
+    ...(k.source ? { source: k.source } : {}),
+    slots: k.slots,
+  }));
 }
 
 export function watchlistIds(cfg: Config): Set<number> {
