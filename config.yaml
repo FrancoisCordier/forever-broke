@@ -71,6 +71,8 @@ watchlist:
     13444: Major Mana Potion
     18253: Major Rejuvenation Potion
     13442: Mighty Rage Potion
+    250936: Superior Spellblasting Potion # Forever: +33 spell damage, 30 s (Wowhead 40-60 pick)
+    250942: Superior Frenzy Potion # Forever: +56 AP, 30 s (Wowhead 40-60 pick)
     3387: Limited Invulnerability Potion
     5634: Free Action Potion
     13455: Greater Stoneshield Potion
@@ -700,6 +702,173 @@ kits:
         }
       - { slot: Healing potion, perNight: 3, options: [13446], note: Major Healing Potion. }
       - { slot: Rune, perNight: 6, options: [20520, 12662], note: Shares the cooldown with healthstones. }
+
+  # The kits below come from the "40-60" row of Wowhead's quick-reference table: the level-60 tier of a
+  # leveling list, not a raid list (no flasks or world buffs yet). Re-check the pages for a raid section.
+  paladin_protection:
+    class: Paladin
+    spec: Protection
+    source:
+      {
+        name: Wowhead (leveling table,
+        40-60),
+        url: "https://www.wowhead.com/forever/guide/classes/paladin/protection/enchants-consumables-pve-tank",
+        date: "2026-11-26",
+      }
+    slots:
+      - {
+          slot: Healing potion,
+          perNight: 6,
+          options: [13446],
+          note: Major Healing Potion. Wowhead's level 40-60 pick; no raid list yet.,
+        }
+      - { slot: Combat potion, perNight: 3, options: [250936], note: Superior Spellblasting Potion. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - { slot: Mana elixir, perNight: 3, options: [20007], note: Mageblood Elixir. }
+      - { slot: Health elixir, perNight: 6, options: [250335], note: Elixir of Greater Fortitude. }
+      - { slot: Agility elixir, perNight: 3, options: [9187], note: Elixir of Greater Agility. }
+      - { slot: Strength elixir, perNight: 3, options: [9206], note: Elixir of Greater Strength. }
+      - { slot: Weapon oil, perNight: 6, options: [20749], note: Brilliant Wizard Oil. }
+      - { slot: Food, perNight: 12, options: [13935], note: Baked Salmon (spell damage). }
+  warlock_affliction:
+    class: Warlock
+    spec: Affliction
+    source:
+      {
+        name: Wowhead (leveling table,
+        40-60),
+        url: "https://www.wowhead.com/forever/guide/classes/warlock/affliction/enchants-consumables-pve-dps",
+        date: "2026-11-26",
+      }
+    slots:
+      - {
+          slot: Combat potion,
+          perNight: 6,
+          options: [250936],
+          note: Superior Spellblasting Potion. Wowhead's level 40-60 pick; no raid list yet.,
+        }
+      - { slot: Healing potion, perNight: 3, options: [13446], note: Major Healing Potion. }
+      - { slot: Shadow power, perNight: 6, options: [9264], note: Elixir of Shadow Power. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - { slot: Mana elixir, perNight: 3, options: [20007], note: Mageblood Elixir. }
+      - {
+          slot: Weapon oil,
+          perNight: 6,
+          options: [20749],
+          note: Brilliant Wizard Oil. Or a Greater Spellstone you make yourself.,
+        }
+      - { slot: Food, perNight: 12, options: [13935, 13933], note: Baked Salmon or Lobster Stew (spell damage). }
+  warlock_demonology:
+    class: Warlock
+    spec: Demonology
+    source:
+      {
+        name: Wowhead (leveling table,
+        40-60),
+        url: "https://www.wowhead.com/forever/guide/classes/warlock/demonology/enchants-consumables-pve-dps",
+        date: "2026-11-26",
+      }
+    slots:
+      - {
+          slot: Combat potion,
+          perNight: 6,
+          options: [250936],
+          note: Superior Spellblasting Potion. Wowhead's level 40-60 pick; no raid list yet.,
+        }
+      - { slot: Healing potion, perNight: 3, options: [13446], note: Major Healing Potion. }
+      - { slot: Shadow power, perNight: 6, options: [9264], note: Elixir of Shadow Power. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - { slot: Mana elixir, perNight: 3, options: [20007], note: Mageblood Elixir. }
+      - {
+          slot: Weapon oil,
+          perNight: 6,
+          options: [20749],
+          note: Brilliant Wizard Oil. Or a Greater Spellstone you make yourself.,
+        }
+      - { slot: Food, perNight: 12, options: [13935, 13933], note: Baked Salmon or Lobster Stew (spell damage). }
+  warlock_destruction:
+    class: Warlock
+    spec: Destruction
+    source:
+      {
+        name: Wowhead (leveling table,
+        40-60),
+        url: "https://www.wowhead.com/forever/guide/classes/warlock/destruction/enchants-consumables-pve-dps",
+        date: "2026-11-26",
+      }
+    slots:
+      - {
+          slot: Combat potion,
+          perNight: 6,
+          options: [250936],
+          note: Superior Spellblasting Potion. Wowhead's level 40-60 pick; no raid list yet.,
+        }
+      - { slot: Healing potion, perNight: 3, options: [13446], note: Major Healing Potion. }
+      - { slot: Shadow power, perNight: 6, options: [9264], note: Elixir of Shadow Power. }
+      - { slot: Spell power elixir, perNight: 3, options: [13454], note: Greater Arcane Elixir. }
+      - { slot: Mana elixir, perNight: 3, options: [20007], note: Mageblood Elixir. }
+      - {
+          slot: Weapon oil,
+          perNight: 6,
+          options: [20749],
+          note: Brilliant Wizard Oil. Or a Greater Spellstone you make yourself.,
+        }
+      - { slot: Food, perNight: 12, options: [13935, 13933], note: Baked Salmon or Lobster Stew (spell damage). }
+  warrior_arms:
+    class: Warrior
+    spec: Arms
+    source:
+      {
+        name: Wowhead (leveling table,
+        40-60),
+        url: "https://www.wowhead.com/forever/guide/classes/warrior/arms/enchants-consumables-pve-dps",
+        date: "2026-11-14",
+      }
+    slots:
+      - {
+          slot: Combat potion,
+          perNight: 6,
+          options: [250942, 13442],
+          note: Superior Frenzy Potion or Mighty Rage Potion. Wowhead's level 40-60 pick; no raid list yet.,
+        }
+      - { slot: Healing potion, perNight: 3, options: [13446], note: Major Healing Potion. }
+      - { slot: Agility elixir, perNight: 3, options: [9187], note: Elixir of Greater Agility. }
+      - { slot: Strength elixir, perNight: 3, options: [9206], note: Elixir of Greater Strength. }
+      - { slot: Sharpening stone, perNight: 6, options: [18262], note: Elemental Sharpening Stone. }
+      - {
+          slot: Food,
+          perNight: 12,
+          options: [250070, 21023],
+          note: "Bear Bruscitti (Strength) or Dirge's Kickin' Chimaerok Chops (Stamina).",
+        }
+  warrior_protection:
+    class: Warrior
+    spec: Protection
+    source:
+      {
+        name: Wowhead (leveling table,
+        40-60),
+        url: "https://www.wowhead.com/forever/guide/classes/warrior/protection/enchants-consumables-pve-tank",
+        date: "2026-10-29",
+      }
+    slots:
+      - {
+          slot: Healing potion,
+          perNight: 6,
+          options: [13446],
+          note: Major Healing Potion. Wowhead's level 40-60 pick; no raid list yet.,
+        }
+      - { slot: Combat potion, perNight: 3, options: [250942], note: Superior Frenzy Potion. }
+      - { slot: Health elixir, perNight: 6, options: [250335], note: Elixir of Greater Fortitude. }
+      - { slot: Agility elixir, perNight: 3, options: [9187], note: Elixir of Greater Agility. }
+      - { slot: Strength elixir, perNight: 3, options: [9206], note: Elixir of Greater Strength. }
+      - { slot: Sharpening stone, perNight: 6, options: [18262], note: Elemental Sharpening Stone. }
+      - {
+          slot: Food,
+          perNight: 12,
+          options: [21023, 250070],
+          note: "Dirge's Kickin' Chimaerok Chops (Stamina) or Bear Bruscitti (Strength).",
+        }
 
 # Buy-list thresholds (ADR-0007). Sell-side thresholds (spike, squeeze) come with the stockpile phase.
 thresholds:
