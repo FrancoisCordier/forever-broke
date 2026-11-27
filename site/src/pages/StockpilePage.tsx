@@ -1,10 +1,11 @@
 import { type FormEvent, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { parseGold } from "../../../src/shared/gold.ts";
 import type { BuyListItem } from "../../../src/shared/signals.ts";
 import { type Lot, type LotValue, type Market, type Purpose, valueLot } from "../../../src/shared/stockpile.ts";
 import type { ItemMeta } from "../../../src/shared/types.ts";
 import { CopyButton } from "../components/CopyButton.tsx";
+import { ItemName } from "../components/ItemName.tsx";
 import { Status } from "../components/Status.tsx";
 import { useToast } from "../components/Toast.tsx";
 import { useBuyList, useItems, useLatest } from "../lib/data.ts";
@@ -19,6 +20,8 @@ interface Row {
   lot: Lot;
   name: string;
   quality: string | null;
+  icon: number | null;
+  tip: string[] | undefined;
   m: Market | undefined;
   v: LotValue;
 }
@@ -151,9 +154,7 @@ function LotTable({
             return (
               <tr key={r.lot.id} className={r.v.sell ? "within" : undefined}>
                 <td>
-                  <Link to={`/item/${r.lot.item}`} className="item-link" style={{ color: qualityColor(r.quality) }}>
-                    {r.name}
-                  </Link>
+                  <ItemName item={{ id: r.lot.item, name: r.name, quality: r.quality, icon: r.icon, tip: r.tip }} />
                   <span className="note lot-date">bought {r.lot.added}</span>
                 </td>
                 <td>
@@ -270,10 +271,13 @@ export function StockpilePage() {
 
   const rows: Row[] = lots.map((lot) => {
     const m = markets.get(lot.item);
+    const listed = buyList.items.find((x) => x.id === lot.item);
     return {
       lot,
       name: nameOf(lot.item),
-      quality: meta[lot.item]?.quality ?? buyList.items.find((x) => x.id === lot.item)?.quality ?? null,
+      quality: meta[lot.item]?.quality ?? listed?.quality ?? null,
+      icon: meta[lot.item]?.icon || listed?.icon || null,
+      tip: meta[lot.item]?.tip ?? listed?.tip,
       m,
       v: valueLot(lot, m, opt),
     };

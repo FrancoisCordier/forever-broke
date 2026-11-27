@@ -57,7 +57,15 @@ export interface ItemMeta {
   cls?: string;
   sub?: string;
   level?: number;
+  /** Icon file id (A21): render.worldofwarcraft.com/forever-eu/icons/56/{icon}.jpg. 0 = the API has none. */
+  icon?: number;
+  /** Tooltip lines as the game shows them ("Requires Level 55", "Use: …"). Watchlist items only. */
+  tip?: string[];
 }
+
+/** URL of an item icon (A21), from `ItemMeta.icon`. */
+export const iconUrl = (icon: number, size: 18 | 36 | 56 = 56) =>
+  `https://render.worldofwarcraft.com/forever-eu/icons/${size}/${icon}.jpg`;
 
 export interface HouseMeta {
   lastModified?: string;

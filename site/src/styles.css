@@ -431,6 +431,69 @@ th[aria-sort="descending"] {
 .item-link:hover {
   text-decoration: underline;
 }
+.item-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.item-icon {
+  flex: none;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+}
+.item-name .item-icon {
+  width: 24px;
+  height: 24px;
+}
+.item-tip {
+  position: fixed;
+  z-index: 50;
+  max-width: calc(100vw - 16px);
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #0b0d12f2;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: var(--soft);
+  font-size: 13px;
+  line-height: 1.45;
+  pointer-events: none;
+}
+.item-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.item-tip-head img {
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+}
+.item-tip p,
+.item-tip-inline p {
+  margin: 4px 0 0;
+  white-space: pre-line;
+}
+.item-tip .item-tip-use,
+.item-tip-inline .item-tip-use {
+  color: #1eff00;
+}
+.item-tip-inline {
+  max-width: 60ch;
+  color: var(--soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.item-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.item-title img {
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+}
 .tags {
   display: flex;
   flex-wrap: wrap;
